@@ -131,7 +131,7 @@
         <dependency>
             <groupId>com.github.PikaMug</groupId>
             <artifactId>LocaleLib</artifactId>
-            <version>-SNAPSHOT</version>
+            <version>1.9</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -226,6 +226,7 @@
                 </executions>
                 
                 <configuration>
+                    <outputDirectory>../../output</outputDirectory>
                     <artifactSet>
                         <includes>
                             <include>me.*</include>

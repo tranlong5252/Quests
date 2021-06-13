@@ -45,20 +45,5 @@
             <artifactId>quests-main</artifactId>
             <version>${revision}</version>
         </dependency>
-        <dependency>
-            <groupId>me.blackvein.quests</groupId>
-            <artifactId>quests-v1_8_R3</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>me.blackvein.quests</groupId>
-            <artifactId>quests-v1_8_R2</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>me.blackvein.quests</groupId>
-            <artifactId>quests-v1_8_R1</artifactId>
-            <version>${revision}</version>
-        </dependency>
     </dependencies>
 </project>
