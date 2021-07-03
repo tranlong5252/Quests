@@ -84,8 +84,11 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryClickEvent(final InventoryClickEvent evt) {
         final InventoryAction ac = evt.getAction();
+        if (ac.equals(InventoryAction.NOTHING)) {
+            return;
+        }
         if (ItemUtil.isItem(evt.getCurrentItem()) && ItemUtil.isJournal(evt.getCurrentItem())) {
-            if (ac.equals(InventoryAction.MOVE_TO_OTHER_INVENTORY) || ac.equals(InventoryAction.DROP_ALL_SLOT) 
+            if (ac.equals(InventoryAction.MOVE_TO_OTHER_INVENTORY) || ac.equals(InventoryAction.DROP_ALL_SLOT)
                     || ac.equals(InventoryAction.DROP_ONE_SLOT)) {
                 evt.setCancelled(true);
                 return;
@@ -632,49 +635,29 @@ public class PlayerListener implements Listener {
             return;
         }
         if (damager instanceof Player) {
-            final Quester quester = plugin.getQuester(damager.getUniqueId());
             if (plugin.getDependencies().getCitizens() != null && CitizensAPI.getNPCRegistry().isNPC(target)) {
-                final ObjectiveType type = ObjectiveType.KILL_NPC;
-                final Set<String> dispatchedQuestIDs = new HashSet<String>();
-                for (final Quest quest : plugin.getLoadedQuests()) {
-                    if (!quester.meetsCondition(quest, true)) {
-                        continue;
-                    }
-                    
-                    if (quester.getCurrentQuests().containsKey(quest) 
-                            && quester.getCurrentStage(quest).containsObjective(type)) {
-                        quester.killNPC(quest, CitizensAPI.getNPCRegistry().getNPC(target));
-                    }
-                    
-                    dispatchedQuestIDs.addAll(quester.dispatchMultiplayerEverything(quest, type, 
-                            (final Quester q, final Quest cq) -> {
-                        if (!dispatchedQuestIDs.contains(cq.getId())) {
-                            q.killNPC(cq, CitizensAPI.getNPCRegistry().getNPC(target));
-                        }
-                        return null;
-                    }));
+                return;
+            }
+            final Quester quester = plugin.getQuester(damager.getUniqueId());
+            final ObjectiveType type = ObjectiveType.KILL_MOB;
+            final Set<String> dispatchedQuestIDs = new HashSet<String>();
+            for (final Quest quest : plugin.getLoadedQuests()) {
+                if (!quester.meetsCondition(quest, true)) {
+                    continue;
                 }
-            } else {
-                final ObjectiveType type = ObjectiveType.KILL_MOB;
-                final Set<String> dispatchedQuestIDs = new HashSet<String>();
-                for (final Quest quest : plugin.getLoadedQuests()) {
-                    if (!quester.meetsCondition(quest, true)) {
-                        continue;
-                    }
-                    
-                    if (quester.getCurrentQuests().containsKey(quest) 
-                            && quester.getCurrentStage(quest).containsObjective(type)) {
-                        quester.killMob(quest, target.getLocation(), target.getType());
-                    }
-                    
-                    dispatchedQuestIDs.addAll(quester.dispatchMultiplayerEverything(quest, type, 
-                            (final Quester q, final Quest cq) -> {
-                        if (!dispatchedQuestIDs.contains(cq.getId())) {
-                            q.killMob(cq, target.getLocation(), target.getType());
-                        }
-                        return null;
-                    }));
+                
+                if (quester.getCurrentQuests().containsKey(quest) 
+                        && quester.getCurrentStage(quest).containsObjective(type)) {
+                    quester.killMob(quest, target.getLocation(), target.getType());
                 }
+                
+                dispatchedQuestIDs.addAll(quester.dispatchMultiplayerEverything(quest, type, 
+                        (final Quester q, final Quest cq) -> {
+                    if (!dispatchedQuestIDs.contains(cq.getId())) {
+                        q.killMob(cq, target.getLocation(), target.getType());
+                    }
+                    return null;
+                }));
             }
         }
     }

@@ -191,9 +191,8 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
                     final int moneyRew = (Integer) context.getSessionData(CK.REW_MONEY);
-                    return ChatColor.GRAY + "(" + ChatColor.AQUA + moneyRew + " " 
-                            + (moneyRew > 1 ? plugin.getDependencies().getCurrency(true) 
-                            : plugin.getDependencies().getCurrency(false)) + ChatColor.GRAY + ")";
+                    return ChatColor.GRAY + "(" + ChatColor.AQUA
+                            + plugin.getDependencies().getVaultEconomy().format(moneyRew) + ChatColor.GRAY + ")";
                 }
             } else {
                 return ChatColor.GRAY + "(" + Lang.get("notInstalled") + ")";
@@ -412,9 +411,19 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
         case 4:
             return new RewardsExperiencePrompt(context);
         case 5:
-            return new RewardsCommandsPrompt(context);
+            if (!plugin.hasLimitedAccess(context.getForWhom())) {
+                return new RewardsCommandsPrompt(context);
+            } else {
+                context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("noPermission"));
+                return new RewardsPrompt(context);
+            }
         case 6:
-            return new RewardsPermissionsListPrompt(context);
+            if (!plugin.hasLimitedAccess(context.getForWhom())) {
+                return new RewardsPermissionsListPrompt(context);
+            } else {
+                context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("noPermission"));
+                return new RewardsPrompt(context);
+            }
         case 7:
             if (plugin.getDependencies().getMcmmoClassic() != null) {
                 return new RewardsMcMMOListPrompt(context);
@@ -490,16 +499,14 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public String getPromptText(final ConversationContext context) {
-            final QuestsEditorPostOpenStringPromptEvent event = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
             context.getPlugin().getServer().getPluginManager().callEvent(event);
             
             String text = getQueryText(context);
             if (plugin.getDependencies().getVaultEconomy() != null) {
-                text = text.replace("<money>", ChatColor.AQUA + (plugin.getDependencies().getVaultEconomy()
-                        .currencyNamePlural().isEmpty() ? Lang.get("money") : plugin.getDependencies().getVaultEconomy()
-                        .currencyNamePlural()) + ChatColor.YELLOW);
-            } else {
-                text = text.replace("<money>", ChatColor.AQUA + Lang.get("money") + ChatColor.YELLOW);
+                text = text.replace("<money>", ChatColor.AQUA
+                        + plugin.getDependencies().getVaultEconomy().currencyNamePlural() + ChatColor.YELLOW);
             }
             return ChatColor.YELLOW + text;
         }
