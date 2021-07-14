@@ -12,7 +12,11 @@
 
 package me.blackvein.quests.listeners;
 
-import me.blackvein.quests.*;
+import me.blackvein.quests.Quest;
+import me.blackvein.quests.Quester;
+import me.blackvein.quests.Quests;
+import me.blackvein.quests.Requirements;
+import me.blackvein.quests.Stage;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsEditorEvent;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsJournalEvent;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsListEvent;
@@ -41,8 +45,16 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class CmdExecutor implements CommandExecutor {
@@ -186,14 +198,14 @@ public class CmdExecutor implements CommandExecutor {
                 if (args.length == 0) {
                     final Player player = (Player) cs;
                     final Quester quester = plugin.getQuester(player.getUniqueId());
-                    if (quester.getCurrentQuests().isEmpty() == false) {
+                    if (!quester.getCurrentQuests().isEmpty()) {
                         for (final Quest q : quester.getCurrentQuests().keySet()) {
                             final Stage stage = quester.getCurrentStage(q);
                             q.updateCompass(quester, stage);
                             if (plugin.getQuester(player.getUniqueId()).getQuestData(q).getDelayStartTime() == 0) {
                                 final String msg = Lang.get(player, "questObjectivesTitle")
                                         .replace("<quest>", q.getName());
-                                quester.sendMessage(ChatColor.GOLD + msg);
+                                Lang.send(player, ChatColor.GOLD + msg);
                                 plugin.showObjectives(q, quester, false);
                             } else {
                                 final long time = plugin.getQuester(player.getUniqueId()).getStageTime(q);
@@ -201,11 +213,11 @@ public class CmdExecutor implements CommandExecutor {
                                         +  Lang.get(player, "plnTooEarly");
                                 msg = msg.replace("<quest>", q.getName());
                                 msg = msg.replace("<time>", MiscUtil.getTime(time));
-                                quester.sendMessage(msg);
+                                Lang.send(player, msg);
                             }
                         }
                     } else {
-                        quester.sendMessage(ChatColor.YELLOW + Lang.get(player, "noActiveQuest"));
+                        Lang.send(player, ChatColor.YELLOW + Lang.get(player, "noActiveQuest"));
                     }
                 } else {
                     showQuestDetails(cs, args);
@@ -678,12 +690,12 @@ public class CmdExecutor implements CommandExecutor {
             final int index = quester.getJournalIndex();
             if (index != -1) {
                 inv.setItem(index, null);
-                player.sendMessage(ChatColor.YELLOW + Lang.get(player, "journalPutAway")
+                Lang.send(player, ChatColor.YELLOW + Lang.get(player, "journalPutAway")
                         .replace("<journal>", Lang.get(player, "journalTitle")));
             } else if (player.getItemInHand() == null || player.getItemInHand().getType().equals(Material.AIR)) {
                 final QuestJournal journal = new QuestJournal(quester);
                 player.setItemInHand(journal.toItemStack());
-                player.sendMessage(ChatColor.YELLOW + Lang.get(player, "journalTaken")
+                Lang.send(player, ChatColor.YELLOW + Lang.get(player, "journalTaken")
                         .replace("<journal>", Lang.get(player, "journalTitle")));
                 //quester.updateJournal();
             } else if (inv.firstEmpty() != -1) {
@@ -692,7 +704,7 @@ public class CmdExecutor implements CommandExecutor {
                     if (arr[i] == null) {
                         final QuestJournal journal = new QuestJournal(quester);
                         inv.setItem(i, journal.toItemStack());
-                        player.sendMessage(ChatColor.YELLOW + Lang.get(player, "journalTaken")
+                        Lang.send(player, ChatColor.YELLOW + Lang.get(player, "journalTaken")
                                 .replace("<journal>", Lang.get(player, "journalTitle")));
                         //quester.updateJournal();
                         break;

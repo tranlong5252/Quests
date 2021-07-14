@@ -12,15 +12,15 @@
 
 package me.blackvein.quests.listeners;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentSkipListSet;
-
+import me.blackvein.quests.Quest;
+import me.blackvein.quests.Quester;
+import me.blackvein.quests.Quests;
+import me.blackvein.quests.Stage;
+import me.blackvein.quests.enums.ObjectiveType;
+import me.blackvein.quests.util.ItemUtil;
+import me.blackvein.quests.util.Lang;
+import me.blackvein.quests.util.MiscUtil;
+import net.citizensnpcs.api.CitizensAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -63,15 +63,12 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.blackvein.quests.Quest;
-import me.blackvein.quests.Quester;
-import me.blackvein.quests.Quests;
-import me.blackvein.quests.Stage;
-import me.blackvein.quests.enums.ObjectiveType;
-import me.blackvein.quests.util.ItemUtil;
-import me.blackvein.quests.util.Lang;
-import me.blackvein.quests.util.MiscUtil;
-import net.citizensnpcs.api.CitizensAPI;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class PlayerListener implements Listener {
 
@@ -183,17 +180,21 @@ public class PlayerListener implements Listener {
         }
         if (e == null || e.equals(EquipmentSlot.HAND)) { // If the event is fired by HAND (main hand)
             if (ItemUtil.isJournal(evt.getPlayer().getItemInHand())) {
+                final Player player = evt.getPlayer();
                 if (evt.hasBlock()) {
+                    if (evt.getClickedBlock() == null) {
+                        return;
+                    }
                     if (evt.getClickedBlock().getType().name().equals("LECTERN")) {
                         evt.setCancelled(true);
-                        evt.getPlayer().sendMessage(ChatColor.RED + Lang.get(evt.getPlayer(), "journalDenied")
+                        Lang.send(player, ChatColor.RED + Lang.get(evt.getPlayer(), "journalDenied")
                                 .replace("<journal>", Lang.get(evt.getPlayer(), "journalTitle")));
                         return;
                     }
                     if (plugin.getSettings().canAllowPranks()
                             && evt.getClickedBlock().getType().name().contains("PORTAL")) {
                         evt.setCancelled(true);
-                        evt.getPlayer().sendMessage(" " + ChatColor.AQUA + ChatColor.UNDERLINE 
+                        Lang.send(player, " " + ChatColor.AQUA + ChatColor.UNDERLINE
                                 + "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
                         return;
                     }
@@ -203,7 +204,7 @@ public class PlayerListener implements Listener {
                         && (evt.getPlayer().getInventory().getHelmet().getType().name().equals("PUMPKIN")
                         || evt.getPlayer().getInventory().getHelmet().getType().name().equals("CARVED_PUMPKIN"))) {
                         if (!evt.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-                            evt.getPlayer().sendMessage(" " + ChatColor.AQUA + ChatColor.UNDERLINE 
+                            Lang.send(player, " " + ChatColor.AQUA + ChatColor.UNDERLINE
                                 + "https://www.youtube.com/watch?v=v4IC7qaNr7I");
                         }
                         evt.setCancelled(true);
@@ -215,7 +216,7 @@ public class PlayerListener implements Listener {
                 final Player player = evt.getPlayer();
                 if (evt.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
                     boolean hasObjective = false;
-                    if (evt.isCancelled() == false) {
+                    if (!evt.isCancelled()) {
                         for (final Quest quest : plugin.getLoadedQuests()) {
                             if (quester.getCurrentQuests().containsKey(quest) 
                                     && quester.getCurrentStage(quest).containsObjective("useBlock")) {
@@ -227,11 +228,14 @@ public class PlayerListener implements Listener {
                         if (plugin.getQuestFactory().getSelectedBlockStarts().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getQuestFactory().getSelectedBlockStarts();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getQuestFactory().setSelectedBlockStarts(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") 
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation")
                                     + " " + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " 
                                     + loc.getY() + ", " + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
@@ -239,11 +243,14 @@ public class PlayerListener implements Listener {
                         } else if (plugin.getActionFactory().getSelectedExplosionLocations().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getActionFactory().getSelectedExplosionLocations();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getActionFactory().setSelectedExplosionLocations(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
                                     + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " + loc.getY() 
                                     + ", " + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
@@ -251,11 +258,14 @@ public class PlayerListener implements Listener {
                         } else if (plugin.getActionFactory().getSelectedEffectLocations().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getActionFactory().getSelectedEffectLocations();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getActionFactory().setSelectedEffectLocations(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
                                     + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " + loc.getY() 
                                     + ", " + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
@@ -263,11 +273,14 @@ public class PlayerListener implements Listener {
                         } else if (plugin.getActionFactory().getSelectedMobLocations().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getActionFactory().getSelectedMobLocations();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getActionFactory().setSelectedMobLocations(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
                                     + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " + loc.getY() 
                                     + ", " + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
@@ -275,11 +288,14 @@ public class PlayerListener implements Listener {
                         } else if (plugin.getActionFactory().getSelectedLightningLocations().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getActionFactory().getSelectedLightningLocations();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getActionFactory().setSelectedLightningLocations(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
                                     + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " + loc.getY() 
                                     + ", " + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
@@ -287,11 +303,14 @@ public class PlayerListener implements Listener {
                         } else if (plugin.getActionFactory().getSelectedTeleportLocations().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getActionFactory().getSelectedTeleportLocations();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getActionFactory().setSelectedTeleportLocations(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
                                     + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " + loc.getY() 
                                     + ", " + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
@@ -299,11 +318,14 @@ public class PlayerListener implements Listener {
                         } else if (plugin.getQuestFactory().getSelectedKillLocations().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getQuestFactory().getSelectedKillLocations();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getQuestFactory().setSelectedKillLocations(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
                                     + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " + loc.getY() 
                                     + ", " + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
@@ -311,16 +333,19 @@ public class PlayerListener implements Listener {
                         } else if (plugin.getQuestFactory().getSelectedReachLocations().containsKey(evt.getPlayer()
                                 .getUniqueId())) {
                             final Block block = evt.getClickedBlock();
+                            if (block == null) {
+                                return;
+                            }
                             final Location loc = block.getLocation();
                             final Map<UUID, Block> temp = plugin.getQuestFactory().getSelectedReachLocations();
-                            temp.put(evt.getPlayer().getUniqueId(), block);
+                            temp.put(player.getUniqueId(), block);
                             plugin.getQuestFactory().setSelectedReachLocations(temp);
-                            evt.getPlayer().sendMessage(ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
+                            Lang.send(player, ChatColor.GOLD + Lang.get(player, "questSelectedLocation") + " "
                             + ChatColor.AQUA + loc.getWorld().getName() + ": " + loc.getX() + ", " + loc.getY() + ", " 
                                     + loc.getZ() + ChatColor.GOLD + " (" + ChatColor.GREEN 
                                     + ItemUtil.getName(new ItemStack(block.getType())) + ChatColor.GOLD + ")");
                             evt.setCancelled(true);
-                        } else if (player.isConversing() == false) {
+                        } else if (!player.isConversing()) {
                             for (final Quest q : plugin.getLoadedQuests()) {
                                 if (q.getBlockStart() != null) {
                                     if (q.getBlockStart().equals(evt.getClickedBlock().getLocation())) {
@@ -329,7 +354,7 @@ public class PlayerListener implements Listener {
                                             String msg = Lang.get(player, "questMaxAllowed");
                                             msg = msg.replace("<number>", String
                                                     .valueOf(plugin.getSettings().getMaxQuests()));
-                                            player.sendMessage(ChatColor.YELLOW + msg);
+                                            Lang.send(player, ChatColor.YELLOW + msg);
                                         } else {
                                             if (quester.getCompletedQuests().contains(q)) {
                                                 if (q.getPlanner().getCooldown() > -1 
@@ -340,14 +365,14 @@ public class PlayerListener implements Listener {
                                                     early = early.replace("<time>", ChatColor.DARK_PURPLE 
                                                             + MiscUtil.getTime(quester.getCooldownDifference(q)) 
                                                             + ChatColor.YELLOW);
-                                                    player.sendMessage(ChatColor.YELLOW + early);
+                                                    Lang.send(player, ChatColor.YELLOW + early);
                                                     continue;
                                                 } else if (quester.getCompletedQuests().contains(q) 
                                                         && q.getPlanner().getCooldown() < 0) {
                                                     String completed = Lang.get(player, "questAlreadyCompleted");
                                                     completed = completed.replace("<quest>", ChatColor.AQUA 
                                                             + q.getName() + ChatColor.YELLOW);
-                                                    player.sendMessage(ChatColor.YELLOW + completed);
+                                                    Lang.send(player, ChatColor.YELLOW + completed);
                                                     continue;
                                                 }
                                             }
@@ -360,7 +385,7 @@ public class PlayerListener implements Listener {
                                                         + quest.getName() + ChatColor.GOLD + " -\n" + "\n" 
                                                         + ChatColor.RESET + quest.getDescription() + "\n";
                                                 for (final String msg : s.split("<br>")) {
-                                                    player.sendMessage(msg);
+                                                    Lang.send(player, msg);
                                                 }
                                                 plugin.getConversationFactory().buildConversation(player).begin();
                                             }
@@ -379,7 +404,7 @@ public class PlayerListener implements Listener {
                     if (evt.getAction().equals(Action.LEFT_CLICK_AIR)
                             || evt.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
                         quester.resetCompass();
-                        player.sendMessage(ChatColor.YELLOW + Lang.get(player, "compassReset"));
+                        Lang.send(player, ChatColor.YELLOW + Lang.get(player, "compassReset"));
                     } else if (evt.getAction().equals(Action.RIGHT_CLICK_AIR)
                             || evt.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
                         quester.findNextCompassTarget(true);
@@ -393,10 +418,11 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerInteractEntity(final PlayerInteractEntityEvent evt) {
         if (evt.getRightClicked().getType() == EntityType.ITEM_FRAME) {
-            if (ItemUtil.isJournal(evt.getPlayer().getItemInHand())) {
+            final Player player = evt.getPlayer();
+            if (ItemUtil.isJournal(player.getItemInHand())) {
                 evt.setCancelled(true);
-                evt.getPlayer().sendMessage(ChatColor.RED + Lang.get(evt.getPlayer(), "journalDenied")
-                        .replace("<journal>", Lang.get(evt.getPlayer(), "journalTitle")));
+                Lang.send(player, ChatColor.RED + Lang.get(player, "journalDenied")
+                        .replace("<journal>", Lang.get(player, "journalTitle")));
             }
         }
     }
@@ -445,33 +471,27 @@ public class PlayerListener implements Listener {
                     if (currentStage == null) {
                         continue;
                     }
-                    if (currentStage.getChatActions().isEmpty() == false) {
+                    if (!currentStage.getChatActions().isEmpty()) {
                         final String chat = evt.getMessage();
                         for (final String s : currentStage.getChatActions().keySet()) {
                             if (s.equalsIgnoreCase(chat)) {
-                                if (quester.getQuestData(quest).actionFired.get(s) == null 
-                                        || quester.getQuestData(quest).actionFired.get(s) == false) {
-                                    new BukkitRunnable() {                        
-                                        @Override
-                                        public void run() {
-                                            currentStage.getChatActions().get(s).fire(quester, quest);
-                                        }
-                                        
-                                    }.runTask(this.plugin);
-                                    quester.getQuestData(quest).actionFired.put(s, true);
-                                }
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        currentStage.getChatActions().get(s).fire(quester, quest);
+                                    }
+
+                                }.runTask(this.plugin);
                             }
                         }
                     }
                     final ObjectiveType type = ObjectiveType.PASSWORD;
                     final Set<String> dispatchedQuestIDs = new HashSet<String>();
                     if (quester.getCurrentStage(quest).containsObjective(type)) {
-                        for (final LinkedList<String> passes : quester.getCurrentStage(quest).getPasswordPhrases()) {
-                            for (final String pass : passes) {
-                                if (pass.equalsIgnoreCase(evt.getMessage())) {
-                                    evt.setCancelled(true);
-                                    break;
-                                }
+                        for (final String pass : quester.getCurrentStage(quest).getPasswordPhrases()) {
+                            if (pass.equalsIgnoreCase(evt.getMessage())) {
+                                evt.setCancelled(true);
+                                break;
                             }
                         }
                         quester.sayPassword(quest, evt);
@@ -493,14 +513,15 @@ public class PlayerListener implements Listener {
     public void onPlayerCommandPreprocess(final PlayerCommandPreprocessEvent evt) {
         if (plugin.canUseQuests(evt.getPlayer().getUniqueId())) {
             final Quester quester = plugin.getQuester(evt.getPlayer().getUniqueId());
-            if (quester.getCurrentQuests().isEmpty() == false) {
+            if (!quester.getCurrentQuests().isEmpty()) {
                 for (final Quest quest : quester.getCurrentQuests().keySet()) {
                     if (!quest.getOptions().canAllowCommands()) {
                         if (!evt.getMessage().startsWith("/quest")) {
-                            evt.getPlayer().sendMessage(ChatColor.RED + Lang.get(evt.getPlayer(), "optCommandsDenied")
+                            final Player player = evt.getPlayer();
+                            Lang.send(player, ChatColor.RED + Lang.get(player, "optCommandsDenied")
                                     .replace("<quest>", ChatColor.DARK_PURPLE + quest.getName() + ChatColor.RED));
                             evt.setCancelled(true);
-                            plugin.getLogger().info("Player " + evt.getPlayer().getName() + " tried to use command " 
+                            plugin.getLogger().info("Player " + player.getName() + " tried to use command "
                                     + evt.getMessage() + " but was denied because they are currently on quest "
                                     + quest.getName());
                             return;
@@ -512,15 +533,11 @@ public class PlayerListener implements Listener {
                                + " on command for quest " + quest.getName());
                         continue;
                     }
-                    if (currentStage.getCommandActions().isEmpty() == false) {
+                    if (!currentStage.getCommandActions().isEmpty()) {
                         final String command = evt.getMessage();
                         for (final String s : currentStage.getCommandActions().keySet()) {
                             if (command.equalsIgnoreCase("/" + s)) {
-                                if (quester.getQuestData(quest).actionFired.get(s) == null 
-                                        || quester.getQuestData(quest).actionFired.get(s) == false) {
-                                    currentStage.getCommandActions().get(s).fire(quester, quest);
-                                    quester.getQuestData(quest).actionFired.put(s, true);
-                                }
+                                currentStage.getCommandActions().get(s).fire(quester, quest);
                             }
                         }
                     }
@@ -837,7 +854,7 @@ public class PlayerListener implements Listener {
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
                 @Override
                 public void run() {
-                    final CompletableFuture<Quester> cf = plugin.getStorage().loadQuesterData(evt.getPlayer().getUniqueId());
+                    final CompletableFuture<Quester> cf = plugin.getStorage().loadQuester(evt.getPlayer().getUniqueId());
                     try {
                         final Quester quester = cf.get();
                         if (quester == null) {
@@ -917,19 +934,14 @@ public class PlayerListener implements Listener {
                 plugin.getQuestFactory().setSelectingNpcs(temp);
             }
             final ConcurrentSkipListSet<Quester> temp = (ConcurrentSkipListSet<Quester>) plugin.getOfflineQuesters();
-            for (final Iterator<Quester> iterator = temp.iterator(); iterator.hasNext();) {
-                final Quester q = iterator.next();
-                if (q.getUUID().equals(quester.getUUID())) {
-                    iterator.remove();
-                }
-            }
+            temp.removeIf(q -> q.getUUID().equals(quester.getUUID()));
             plugin.setOfflineQuesters(temp);
         }
     }
 
     @EventHandler
     public void onPlayerMove(final PlayerMoveEvent evt) {
-        if (evt.getPlayer() == null || evt.getTo() == null) {
+        if (evt.getTo() == null) {
             return;
         }
         if (evt.getFrom().getBlock().equals(evt.getTo().getBlock())) {
