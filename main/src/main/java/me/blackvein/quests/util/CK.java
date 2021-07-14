@@ -139,6 +139,7 @@ public class CK {
     public static final String PLN_REPEAT_CYCLE = "repeatCyclePln";
     public static final String PLN_COOLDOWN = "cooldownPln";
     public static final String PLN_OVERRIDE = "overridePln";
+    public static final String PLN_RESET_ON_NEW_DAY = "resetOnNewDay";
     // Options
     public static final String OPT_ALLOW_COMMANDS = "allowCommandsOpt";
     public static final String OPT_ALLOW_QUITTING = "allowQuittingOpt";

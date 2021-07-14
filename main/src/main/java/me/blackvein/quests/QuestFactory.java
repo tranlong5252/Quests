@@ -12,36 +12,6 @@
 
 package me.blackvein.quests;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.conversations.ConversationAbandonedEvent;
-import org.bukkit.conversations.ConversationAbandonedListener;
-import org.bukkit.conversations.ConversationContext;
-import org.bukkit.conversations.ConversationFactory;
-import org.bukkit.conversations.ConversationPrefix;
-import org.bukkit.conversations.Prompt;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
 import me.blackvein.quests.convo.quests.main.QuestMainPrompt;
 import me.blackvein.quests.convo.quests.menu.QuestMenuPrompt;
 import me.blackvein.quests.convo.quests.stages.StageMenuPrompt;
@@ -50,6 +20,24 @@ import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.ConfigUtil;
 import me.blackvein.quests.util.Lang;
 import me.blackvein.quests.util.MiscUtil;
+import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.conversations.*;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class QuestFactory implements ConversationAbandonedListener {
 
@@ -278,6 +266,7 @@ public class QuestFactory implements ConversationAbandonedListener {
             context.setSessionData(CK.PLN_COOLDOWN, pln.getCooldown());
         }
         context.setSessionData(CK.PLN_OVERRIDE, pln.getOverride());
+        context.setSessionData(CK.PLN_RESET_ON_NEW_DAY, pln.isResetOnNewDay());
         final Options opt = q.getOptions();
         context.setSessionData(CK.OPT_ALLOW_COMMANDS, opt.canAllowCommands());
         context.setSessionData(CK.OPT_ALLOW_QUITTING, opt.canAllowQuitting());
@@ -932,6 +921,8 @@ public class QuestFactory implements ConversationAbandonedListener {
                 ? ((Long) context.getSessionData(CK.PLN_COOLDOWN) / 1000) : null);
         pln.set("override", context.getSessionData(CK.PLN_OVERRIDE) != null 
                 ? (Boolean) context.getSessionData(CK.PLN_OVERRIDE) : null);
+        pln.set("reset-on-new-day", context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) != null
+                ? (Boolean) context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) : null);
         if (pln.getKeys(false).isEmpty()) {
             section.set("planner", null);
         }

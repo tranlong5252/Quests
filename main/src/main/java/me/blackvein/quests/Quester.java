@@ -12,30 +12,23 @@
 
 package me.blackvein.quests;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import com.alessiodp.parties.api.interfaces.Party;
+import com.alessiodp.parties.api.interfaces.PartyPlayer;
+import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.util.player.UserManager;
+import de.erethon.dungeonsxl.player.DGroup;
+import me.blackvein.quests.conditions.Condition;
+import me.blackvein.quests.enums.ObjectiveType;
+import me.blackvein.quests.events.quest.QuestTakeEvent;
+import me.blackvein.quests.events.quester.*;
+import me.blackvein.quests.item.QuestJournal;
+import me.blackvein.quests.storage.Storage;
+import me.blackvein.quests.tasks.StageTimer;
+import me.blackvein.quests.util.*;
+import me.clip.placeholderapi.PlaceholderAPI;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -51,32 +44,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Crops;
 
-import com.alessiodp.parties.api.interfaces.Party;
-import com.alessiodp.parties.api.interfaces.PartyPlayer;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.gmail.nossr50.util.player.UserManager;
-
-import de.erethon.dungeonsxl.player.DGroup;
-import me.blackvein.quests.conditions.Condition;
-import me.blackvein.quests.enums.ObjectiveType;
-import me.blackvein.quests.events.quest.QuestTakeEvent;
-import me.blackvein.quests.events.quester.QuesterPostStartQuestEvent;
-import me.blackvein.quests.events.quester.QuesterPostUpdateObjectiveEvent;
-import me.blackvein.quests.events.quester.QuesterPreOpenGUIEvent;
-import me.blackvein.quests.events.quester.QuesterPreStartQuestEvent;
-import me.blackvein.quests.events.quester.QuesterPreUpdateObjectiveEvent;
-import me.blackvein.quests.item.QuestJournal;
-import me.blackvein.quests.storage.Storage;
-import me.blackvein.quests.tasks.StageTimer;
-import me.blackvein.quests.util.ConfigUtil;
-import me.blackvein.quests.util.InventoryUtil;
-import me.blackvein.quests.util.ItemUtil;
-import me.blackvein.quests.util.Lang;
-import me.blackvein.quests.util.MiscUtil;
-import me.blackvein.quests.util.RomanNumeral;
-import me.clip.placeholderapi.PlaceholderAPI;
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.NPC;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Quester implements Comparable<Quester> {
 
@@ -4351,8 +4327,11 @@ public class Quester implements Comparable<Quester> {
         if (getCurrentQuests().size() >= plugin.getSettings().getMaxQuests() && plugin.getSettings().getMaxQuests() 
                 > 0) {
             if (giveReason) {
-                final String msg = Lang.get(getPlayer(), "questMaxAllowed").replace("<number>", 
-                        String.valueOf(plugin.getSettings().getMaxQuests()));
+                StringJoiner joiner = new StringJoiner(", ");
+                getCurrentQuests().keySet().forEach(q -> joiner.add(q.getName()));
+                final String msg = Lang.get(getPlayer(), "questMaxAllowed")
+                        .replace("<current>", joiner.toString())
+                        .replace("<number>", String.valueOf(plugin.getSettings().getMaxQuests()));
                 sendMessage(ChatColor.YELLOW + msg);
             }
             return false;
@@ -4388,8 +4367,8 @@ public class Quester implements Comparable<Quester> {
                 sendMessage(ChatColor.YELLOW + msg);
             }
             return false;
-        } else if (getCompletedQuests().contains(quest) && getRemainingCooldown(quest) > 0 
-                && !quest.getPlanner().getOverride()) {
+        } else if (getCompletedQuests().contains(quest) && getRemainingCooldown(quest) > 0
+                && !isResetCooldown(quest) && !quest.getPlanner().getOverride()) {
             if (giveReason) {
                 final String msg = Lang.get(getPlayer(), "questTooEarly").replace("<quest>", ChatColor.AQUA 
                         + quest.getName()+ ChatColor.YELLOW).replace("<time>", ChatColor.DARK_PURPLE 
@@ -4406,6 +4385,19 @@ public class Quester implements Comparable<Quester> {
                 }
                 return false;
             }
+        }
+        return true;
+    }
+
+    private static final SimpleDateFormat format = new SimpleDateFormat("dd") {{
+
+        setTimeZone(TimeZone.getTimeZone(ZoneId.SHORT_IDS.get("VST")));
+
+    }};
+    public boolean isResetCooldown(Quest quest) {
+        long completedTime = getCompletedTimes().get(quest);
+        if (quest.getPlanner().getCooldown() > 0) {
+            return Integer.parseInt(format.format(new Date())) > Integer.parseInt(format.format(new Date(completedTime)));
         }
         return true;
     }

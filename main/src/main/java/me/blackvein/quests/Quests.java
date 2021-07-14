@@ -12,58 +12,38 @@
 
 package me.blackvein.quests;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.lang.reflect.Constructor;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.logging.Level;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import com.codisimus.plugins.phatloots.PhatLootsAPI;
+import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.herocraftonline.heroes.characters.classes.HeroClass;
+import me.blackvein.quests.actions.Action;
+import me.blackvein.quests.actions.ActionFactory;
+import me.blackvein.quests.conditions.Condition;
+import me.blackvein.quests.conditions.ConditionFactory;
+import me.blackvein.quests.convo.npcs.NpcOfferQuestPrompt;
+import me.blackvein.quests.exceptions.ActionFormatException;
+import me.blackvein.quests.exceptions.ConditionFormatException;
+import me.blackvein.quests.exceptions.QuestFormatException;
+import me.blackvein.quests.exceptions.StageFormatException;
+import me.blackvein.quests.interfaces.ReloadCallback;
+import me.blackvein.quests.listeners.*;
+import me.blackvein.quests.statistics.Metrics;
+import me.blackvein.quests.storage.Storage;
+import me.blackvein.quests.storage.StorageFactory;
+import me.blackvein.quests.tasks.NpcEffectThread;
+import me.blackvein.quests.tasks.PlayerMoveThread;
+import me.blackvein.quests.util.*;
+import me.clip.placeholderapi.PlaceholderAPI;
+import me.pikamug.localelib.LocaleManager;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.conversations.Conversable;
-import org.bukkit.conversations.ConversationAbandonedEvent;
-import org.bukkit.conversations.ConversationAbandonedListener;
-import org.bukkit.conversations.ConversationContext;
-import org.bukkit.conversations.ConversationFactory;
-import org.bukkit.conversations.ConversationPrefix;
-import org.bukkit.conversations.Prompt;
-import org.bukkit.conversations.StringPrompt;
+import org.bukkit.conversations.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -76,41 +56,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.codisimus.plugins.phatloots.PhatLootsAPI;
-import com.gmail.nossr50.datatypes.skills.SkillType;
-import com.herocraftonline.heroes.characters.classes.HeroClass;
-
-import me.blackvein.quests.actions.Action;
-import me.blackvein.quests.actions.ActionFactory;
-import me.blackvein.quests.conditions.Condition;
-import me.blackvein.quests.conditions.ConditionFactory;
-import me.blackvein.quests.convo.npcs.NpcOfferQuestPrompt;
-import me.blackvein.quests.exceptions.ActionFormatException;
-import me.blackvein.quests.exceptions.ConditionFormatException;
-import me.blackvein.quests.exceptions.QuestFormatException;
-import me.blackvein.quests.exceptions.StageFormatException;
-import me.blackvein.quests.interfaces.ReloadCallback;
-import me.blackvein.quests.listeners.BlockListener;
-import me.blackvein.quests.listeners.CmdExecutor;
-import me.blackvein.quests.listeners.DungeonsListener;
-import me.blackvein.quests.listeners.ItemListener;
-import me.blackvein.quests.listeners.NpcListener;
-import me.blackvein.quests.listeners.PartiesListener;
-import me.blackvein.quests.listeners.PlayerListener;
-import me.blackvein.quests.statistics.Metrics;
-import me.blackvein.quests.storage.Storage;
-import me.blackvein.quests.storage.StorageFactory;
-import me.blackvein.quests.tasks.NpcEffectThread;
-import me.blackvein.quests.tasks.PlayerMoveThread;
-import me.blackvein.quests.util.ConfigUtil;
-import me.blackvein.quests.util.ItemUtil;
-import me.blackvein.quests.util.Lang;
-import me.blackvein.quests.util.MiscUtil;
-import me.blackvein.quests.util.RomanNumeral;
-import me.clip.placeholderapi.PlaceholderAPI;
-import me.pikamug.localelib.LocaleManager;
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.NPC;
+import java.io.*;
+import java.lang.reflect.Constructor;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.logging.Level;
 
 public class Quests extends JavaPlugin implements ConversationAbandonedListener {
 
@@ -2215,8 +2172,10 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
             pln.setEnd(config.getString("quests." + questKey + ".planner.end"));
         }
         if (config.contains("quests." + questKey + ".planner.repeat")) {
-            if (config.getInt("quests." + questKey + ".planner.repeat", -999) != -999) {
-                pln.setRepeat(config.getInt("quests." + questKey + ".planner.repeat") * 1000);
+            if (config.getLong("quests." + questKey + ".planner.repeat", -999) != -999) {
+                pln.setRepeat(config.getLong("quests." + questKey + ".planner.repeat") * 1000L);
+            } else if (config.getInt("quests." + questKey + ".planner.repeat", -999) != -999) {
+                pln.setRepeat(config.getInt("quests." + questKey + ".planner.repeat") * 1000L);
             } else {
                 throw new QuestFormatException("Requirement repeat is not a number", questKey);
             }
@@ -2230,6 +2189,9 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
         }
         if (config.contains("quests." + questKey + ".planner.override")) {
             pln.setOverride(config.getBoolean("quests." + questKey + ".planner.override"));
+        }
+        if (config.contains("quests." + questKey + ".planner.reset-on-new-day")) {
+            pln.setResetOnNewDay(config.getBoolean("quests." + questKey + ".planner.reset-on-new-day"));
         }
     }
     

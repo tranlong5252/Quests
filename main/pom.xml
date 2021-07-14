@@ -51,6 +51,11 @@
     
     <dependencies>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+        </dependency>
+        <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
             <version>1.13.2-R0.1-SNAPSHOT</version>
@@ -206,6 +211,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
+                <configuration>
+                    <outputDirectory>../../output</outputDirectory>
+                    <finalName>Quests</finalName>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -226,7 +235,6 @@
                 </executions>
                 
                 <configuration>
-                    <outputDirectory>../../output</outputDirectory>
                     <artifactSet>
                         <includes>
                             <include>me.*</include>
