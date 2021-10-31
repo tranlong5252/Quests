@@ -63,10 +63,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -352,7 +349,11 @@ public class PlayerListener implements Listener {
                                         if (quester.getCurrentQuests().size() >= plugin.getSettings().getMaxQuests() 
                                                 && plugin.getSettings().getMaxQuests() > 0) {
                                             String msg = Lang.get(player, "questMaxAllowed");
-                                            msg = msg.replace("<number>", String
+                                            StringJoiner joiner = new StringJoiner(", ");
+                                            quester.getCurrentQuests().keySet().forEach(quest -> joiner.add(quest.getName()));
+                                            msg = msg
+                                                    .replace("<current>", joiner.toString())
+                                                    .replace("<number>", String
                                                     .valueOf(plugin.getSettings().getMaxQuests()));
                                             Lang.send(player, ChatColor.YELLOW + msg);
                                         } else {

@@ -14,6 +14,7 @@ package me.blackvein.quests;
 
 import com.codisimus.plugins.phatloots.PhatLootsAPI;
 import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.google.common.collect.Lists;
 import com.herocraftonline.heroes.characters.classes.HeroClass;
 import me.blackvein.quests.actions.Action;
 import me.blackvein.quests.actions.ActionFactory;
@@ -3732,7 +3733,7 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
         }
         if (data.contains(conditionKey + "permission")) {
             if (ConfigUtil.checkList(data.getList(conditionKey + "permission"), String.class)) {
-                condition.setPermissions((LinkedList<String>) data.getStringList(conditionKey + "permission"));
+                condition.setPermissions(Lists.newLinkedList(data.getStringList(conditionKey + "permission")));
             } else {
                 throw new ConditionFormatException("permission is not a list of permissions", conditionKey);
             }
@@ -3813,10 +3814,10 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
             if (ConfigUtil.checkList(data.getList(conditionKey + "check-placeholder-id"), String.class)) {
                 if (data.contains(conditionKey + "check-placeholder-value")) {
                     if (ConfigUtil.checkList(data.getList(conditionKey + "check-placeholder-value"), String.class)) {
-                        condition.setPlaceholdersCheckIdentifier((LinkedList<String>) data.getStringList(conditionKey
-                                + "check-placeholder-id"));
-                        condition.setPlaceholdersCheckValue((LinkedList<String>) data.getStringList(conditionKey
-                                + "check-placeholder-value"));
+                        condition.setPlaceholdersCheckIdentifier(Lists.newLinkedList(data.getStringList(conditionKey
+                                + "check-placeholder-id")));
+                        condition.setPlaceholdersCheckValue(Lists.newLinkedList(data.getStringList(conditionKey
+                                + "check-placeholder-value")));
                     } else {
                         throw new ConditionFormatException("check-placeholder-value is not a list of values", conditionKey);
                     }

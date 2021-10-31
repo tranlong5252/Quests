@@ -47,6 +47,10 @@
             <id>hc-repo</id>
             <url>http://nexus.hc.to/content/repositories/pub_releases/</url>
         </repository>
+        <repository>
+            <id>vignette</id>
+            <url>https://erethon.de/repo/</url>
+        </repository>
     </repositories>
     
     <dependencies>

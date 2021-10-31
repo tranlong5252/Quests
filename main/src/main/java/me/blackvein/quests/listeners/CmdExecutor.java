@@ -12,11 +12,7 @@
 
 package me.blackvein.quests.listeners;
 
-import me.blackvein.quests.Quest;
-import me.blackvein.quests.Quester;
-import me.blackvein.quests.Quests;
-import me.blackvein.quests.Requirements;
-import me.blackvein.quests.Stage;
+import me.blackvein.quests.*;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsEditorEvent;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsJournalEvent;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsListEvent;
@@ -45,16 +41,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class CmdExecutor implements CommandExecutor {
@@ -1390,7 +1378,7 @@ public class CmdExecutor implements CommandExecutor {
                 quester.saveData();
                 quester.updateJournal();
                 final Storage storage = plugin.getStorage();
-                storage.deleteQuesterData(id);
+                storage.deleteQuester(id);
                 String msg = Lang.get("questReset");
                 if (target.getName() != null) {
                     msg = msg.replace("<player>", ChatColor.GREEN + target.getName() + ChatColor.GOLD);
