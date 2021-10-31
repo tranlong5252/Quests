@@ -1,6 +1,6 @@
-/*******************************************************************************************************
+/*
  * Copyright (c) 2014 PikaMug and contributors. All rights reserved.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
  * NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -8,7 +8,7 @@
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************************************/
+ */
 
 package me.blackvein.quests.listeners;
 
@@ -25,7 +25,7 @@ import com.alessiodp.parties.api.events.bukkit.player.BukkitPartiesPlayerPostLea
 import me.blackvein.quests.util.Lang;
 
 public class PartiesListener implements Listener {
-    
+
     @EventHandler
     public void onPartyCreate(final BukkitPartiesPartyPostCreateEvent event) {
         if (event.getCreator() != null) {
@@ -37,7 +37,7 @@ public class PartiesListener implements Listener {
             }
         }
     }
-    
+
     @EventHandler
     public void onPlayerJoinEvent(final BukkitPartiesPlayerPostJoinEvent event) {
         final Player p = Bukkit.getServer().getPlayer(event.getPartyPlayer().getPlayerUUID());
@@ -46,7 +46,7 @@ public class PartiesListener implements Listener {
             event.getParty().broadcastMessage(ChatColor.GREEN + Lang.get("questPartiesJoinBroadcast").replace("<player>", event.getPartyPlayer().getName()), event.getPartyPlayer());
         }
     }
-    
+
     @EventHandler
     public void onPlayerLeaveEvent(final BukkitPartiesPlayerPostLeaveEvent event) {
         final Player p = Bukkit.getServer().getPlayer(event.getPartyPlayer().getPlayerUUID());

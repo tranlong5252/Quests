@@ -1,6 +1,6 @@
-/*******************************************************************************************************
+/*
  * Copyright (c) 2014 PikaMug and contributors. All rights reserved.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
  * NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -8,7 +8,7 @@
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************************************/
+ */
 
 package me.blackvein.quests;
 
@@ -17,6 +17,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Settings {
     
@@ -42,6 +43,7 @@ public class Settings {
     private int topLimit = 150;
     private boolean translateNames = false;
     private boolean translateSubCommands = false;
+    private boolean updateCheck = true;
     
     public Settings(final Quests plugin) {
         this.plugin = plugin;
@@ -173,6 +175,12 @@ public class Settings {
     public void setTranslateSubCommands(final boolean translateSubCommands) {
         this.translateSubCommands = translateSubCommands;
     }
+    public boolean canUpdateCheck() {
+        return updateCheck;
+    }
+    public void setUpdateCheck(final boolean updateCheck) {
+        this.updateCheck = updateCheck;
+    }
     
     public void init() {
         final FileConfiguration config = plugin.getConfig();
@@ -186,7 +194,7 @@ public class Settings {
         genFilesOnJoin = config.getBoolean("generate-files-on-join", true);
         ignoreLockedQuests = config.getBoolean("ignore-locked-quests", false);
         killDelay = config.getInt("kill-delay", 600);
-        if (config.getString("language").equalsIgnoreCase("en")) {
+        if (Objects.requireNonNull(config.getString("language")).equalsIgnoreCase("en")) {
             //Legacy
             Lang.setISO("en-US");
         } else {
@@ -203,6 +211,7 @@ public class Settings {
         topLimit = config.getInt("top-limit", 150);
         translateNames = config.getBoolean("translate-names", true);
         translateSubCommands = config.getBoolean("translate-subcommands", false);
+        updateCheck = config.getBoolean("update-check", true);
         try {
             config.save(new File(plugin.getDataFolder(), "config.yml"));
         } catch (final IOException e) {

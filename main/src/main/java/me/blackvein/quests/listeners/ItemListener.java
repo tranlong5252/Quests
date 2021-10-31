@@ -1,6 +1,6 @@
-/*******************************************************************************************************
+/*
  * Copyright (c) 2014 PikaMug and contributors. All rights reserved.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
  * NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -8,13 +8,14 @@
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************************************/
+ */
 
 package me.blackvein.quests.listeners;
 
-import java.util.HashSet;
-import java.util.Set;
-
+import me.blackvein.quests.Quest;
+import me.blackvein.quests.Quester;
+import me.blackvein.quests.Quests;
+import me.blackvein.quests.enums.ObjectiveType;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,10 +29,8 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 
-import me.blackvein.quests.Quest;
-import me.blackvein.quests.Quester;
-import me.blackvein.quests.Quests;
-import me.blackvein.quests.enums.ObjectiveType;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ItemListener implements Listener {
     
@@ -52,7 +51,7 @@ public class ItemListener implements Listener {
                 final ItemStack craftedItem = getCraftedItem(evt);
                 final Quester quester = plugin.getQuester(player.getUniqueId());
                 final ObjectiveType type = ObjectiveType.CRAFT_ITEM;
-                final Set<String> dispatchedQuestIDs = new HashSet<String>();
+                final Set<String> dispatchedQuestIDs = new HashSet<>();
                 for (final Quest quest : plugin.getLoadedQuests()) {
                     if (!quester.meetsCondition(quest, true)) {
                         continue;
@@ -103,7 +102,7 @@ public class ItemListener implements Listener {
                 if (evt.getSlotType() == SlotType.RESULT) {
                     final Quester quester = plugin.getQuester(player.getUniqueId());
                     final ObjectiveType type = ObjectiveType.SMELT_ITEM;
-                    final Set<String> dispatchedQuestIDs = new HashSet<String>();
+                    final Set<String> dispatchedQuestIDs = new HashSet<>();
                     for (final Quest quest : plugin.getLoadedQuests()) {
                         if (!quester.meetsCondition(quest, true)) {
                             continue;
@@ -126,7 +125,7 @@ public class ItemListener implements Listener {
                 if (evt.getSlotType() == SlotType.CRAFTING) {
                     final Quester quester = plugin.getQuester(player.getUniqueId());
                     final ObjectiveType type = ObjectiveType.BREW_ITEM;
-                    final Set<String> dispatchedQuestIDs = new HashSet<String>();
+                    final Set<String> dispatchedQuestIDs = new HashSet<>();
                     for (final Quest quest : plugin.getLoadedQuests()) {
                         if (!quester.meetsCondition(quest, true)) {
                             continue;
@@ -154,14 +153,10 @@ public class ItemListener implements Listener {
         if (plugin.canUseQuests(evt.getEnchanter().getUniqueId())) {
             final ItemStack enchantedItem = evt.getItem().clone();
             enchantedItem.setAmount(1);
-            try {
-                enchantedItem.addEnchantments(evt.getEnchantsToAdd());
-            } catch (final IllegalArgumentException e) {
-                // Ignore
-            }
+            enchantedItem.addUnsafeEnchantments(evt.getEnchantsToAdd());
             final Quester quester = plugin.getQuester(evt.getEnchanter().getUniqueId());
             final ObjectiveType type = ObjectiveType.ENCHANT_ITEM;
-            final Set<String> dispatchedQuestIDs = new HashSet<String>();
+            final Set<String> dispatchedQuestIDs = new HashSet<>();
             for (final Quest quest : plugin.getLoadedQuests()) {
                 if (!quester.meetsCondition(quest, true)) {
                     continue;
@@ -169,12 +164,20 @@ public class ItemListener implements Listener {
                 
                 if (quester.getCurrentQuests().containsKey(quest) 
                         && quester.getCurrentStage(quest).containsObjective(type)) {
-                    quester.enchantItem(quest, enchantedItem);
+                    if (enchantedItem.getType().equals(Material.BOOK)) {
+                        quester.enchantBook(quest, enchantedItem, evt.getEnchantsToAdd());
+                    } else {
+                        quester.enchantItem(quest, enchantedItem);
+                    }
                 }
                 
                 dispatchedQuestIDs.addAll(quester.dispatchMultiplayerEverything(quest, type, (final Quester q, final Quest cq) -> {
                     if (!dispatchedQuestIDs.contains(cq.getId())) {
-                        q.enchantItem(cq, enchantedItem);
+                        if (enchantedItem.getType().equals(Material.BOOK)) {
+                            q.enchantBook(cq, enchantedItem, evt.getEnchantsToAdd());
+                        } else {
+                            q.enchantItem(cq, enchantedItem);
+                        }
                     }
                     return null;
                 }));
@@ -190,7 +193,7 @@ public class ItemListener implements Listener {
             consumedItem.setAmount(1);
             final Quester quester = plugin.getQuester(evt.getPlayer().getUniqueId());
             final ObjectiveType type = ObjectiveType.CONSUME_ITEM;
-            final Set<String> dispatchedQuestIDs = new HashSet<String>();
+            final Set<String> dispatchedQuestIDs = new HashSet<>();
             for (final Quest quest : plugin.getLoadedQuests()) {
                 if (!quester.meetsCondition(quest, true)) {
                     continue;

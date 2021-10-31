@@ -1,6 +1,6 @@
-/*******************************************************************************************************
+/*
  * Copyright (c) 2014 PikaMug and contributors. All rights reserved.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
  * NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -8,7 +8,7 @@
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
  * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************************************/
+ */
 
 package me.blackvein.quests.storage.implementation.file;
 
@@ -27,7 +27,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -83,10 +82,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
             } else {
                 return null;
             }
-        } catch (final IOException e) {
-            e.printStackTrace();
-            return null;
-        } catch (final InvalidConfigurationException e) {
+        } catch (final IOException | InvalidConfigurationException e) {
             e.printStackTrace();
             return null;
         }
@@ -106,14 +102,14 @@ public class SeparatedYamlStorage implements StorageImplementation {
         }
         if (data.contains("amountsCompletedQuests")) {
             final List<String> questIds = data.getStringList("amountsCompletedQuests");
-            final List<Integer> questAmts = data.getIntegerList("amountsCompleted");
+            final List<Integer> questAmounts = data.getIntegerList("amountsCompleted");
             final ConcurrentHashMap<Quest, Integer> amountsCompleted = quester.getAmountsCompleted();
             for (int i = 0; i < questIds.size(); i++) {
                 if (plugin.getQuestById(questIds.get(i)) != null) {
-                    amountsCompleted.put(plugin.getQuestById(questIds.get(i)), questAmts.get(i));
+                    amountsCompleted.put(plugin.getQuestById(questIds.get(i)), questAmounts.get(i));
                 } else if (plugin.getQuest(questIds.get(i)) != null) {
                     // Legacy
-                    amountsCompleted.put(plugin.getQuest(questIds.get(i)), questAmts.get(i));
+                    amountsCompleted.put(plugin.getQuest(questIds.get(i)), questAmounts.get(i));
                 }
             }
             quester.setAmountsCompleted(amountsCompleted);
@@ -161,11 +157,10 @@ public class SeparatedYamlStorage implements StorageImplementation {
             for (final String key : dataSec.getKeys(false)) {
                 final ConfigurationSection questSec = dataSec.getConfigurationSection(key);
                 final Quest quest = plugin.getQuestById(key) != null ? plugin.getQuestById(key) : plugin.getQuest(key);
-                Stage stage;
                 if (quest == null || !quester.getCurrentQuests().containsKey(quest)) {
                     continue;
                 }
-                stage = quester.getCurrentStage(quest);
+                final Stage stage = quester.getCurrentStage(quest);
                 if (stage == null) {
                     quest.completeQuest(quester);
                     plugin.getLogger().severe("[Quests] Invalid stage number for player: \"" + uniqueId + "\" on Quest \"" 
@@ -246,7 +241,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
                     int index = 0;
                     for (final int amt : craftAmounts) {
                         final ItemStack is = quester.getCurrentStage(quest).getItemsToCraft().get(index);
-                        final ItemStack temp = is.clone();
+                        final ItemStack temp = new ItemStack(is.clone());
                         temp.setAmount(amt);
                         if (quester.getQuestData(quest).getItemsCrafted().size() > 0) {
                             quester.getQuestData(quest).itemsCrafted.set(index, temp);
@@ -259,7 +254,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
                     int index = 0;
                     for (final int amt : smeltAmounts) {
                         final ItemStack is = quester.getCurrentStage(quest).getItemsToSmelt().get(index);
-                        final ItemStack temp = is.clone();
+                        final ItemStack temp = new ItemStack(is.clone());
                         temp.setAmount(amt);
                         if (quester.getQuestData(quest).getItemsSmelted().size() > 0) {
                             quester.getQuestData(quest).itemsSmelted.set(index, temp);
@@ -272,7 +267,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
                     int index = 0;
                     for (final int amt : enchantAmounts) {
                         final ItemStack is = quester.getCurrentStage(quest).getItemsToEnchant().get(index);
-                        final ItemStack temp = is.clone();
+                        final ItemStack temp = new ItemStack(is.clone());
                         temp.setAmount(amt);
                         if (quester.getQuestData(quest).getItemsEnchanted().size() > 0) {
                             quester.getQuestData(quest).itemsEnchanted.set(index, temp);
@@ -285,7 +280,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
                     int index = 0;
                     for (final int amt : brewAmounts) {
                         final ItemStack is = quester.getCurrentStage(quest).getItemsToBrew().get(index);
-                        final ItemStack temp = is.clone();
+                        final ItemStack temp = new ItemStack(is.clone());
                         temp.setAmount(amt);
                         if (quester.getQuestData(quest).getItemsBrewed().size() > 0) {
                             quester.getQuestData(quest).itemsBrewed.set(index, temp);
@@ -298,7 +293,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
                     int index = 0;
                     for (final int amt : consumeAmounts) {
                         final ItemStack is = quester.getCurrentStage(quest).getItemsToConsume().get(index);
-                        final ItemStack temp = is.clone();
+                        final ItemStack temp = new ItemStack(is.clone());
                         temp.setAmount(amt);
                         if (quester.getQuestData(quest).getItemsConsumed().size() > 0) {
                             quester.getQuestData(quest).itemsConsumed.set(index, temp);
@@ -323,16 +318,16 @@ public class SeparatedYamlStorage implements StorageImplementation {
                 }
                 if (questSec.contains("has-talked-to")) {
                     final List<Boolean> talkAmount = questSec.getBooleanList("has-talked-to");
-                    quester.getQuestData(quest).setCitizensInteracted(new LinkedList<Boolean>(talkAmount));
+                    quester.getQuestData(quest).setCitizensInteracted(new LinkedList<>(talkAmount));
                 }
-                if (questSec.contains("citizen-ids-killed")) {
-                    final List<Integer> ids = questSec.getIntegerList("citizen-ids-killed");
-                    final List<Integer> num = questSec.getIntegerList("citizen-amounts-killed");
-                    quester.getQuestData(quest).citizensIdsKilled.clear();
-                    quester.getQuestData(quest).citizensNumKilled.clear();
-                    for (final int i : ids) {
-                        quester.getQuestData(quest).citizensIdsKilled.add(i);
-                        quester.getQuestData(quest).citizensNumKilled.add(num.get(ids.indexOf(i)));
+                if (questSec.contains("citizen-amounts-killed")) {
+                    final List<Integer> citizensAmounts = questSec.getIntegerList("citizen-amounts-killed");
+                    int index = 0;
+                    for (final int amt : citizensAmounts) {
+                        if (quester.getQuestData(quest).getCitizensNumKilled().size() > 0) {
+                            quester.getQuestData(quest).citizensNumKilled.set(index, amt);
+                        }
+                        index++;
                     }
                 }
                 if (questSec.contains("cows-milked")) {
@@ -344,41 +339,35 @@ public class SeparatedYamlStorage implements StorageImplementation {
                 if (questSec.contains("players-killed")) {
                     quester.getQuestData(quest).setPlayersKilled(questSec.getInt("players-killed"));
                 }
-                if (questSec.contains("mobs-killed")) {
-                    final LinkedList<EntityType> mobs = new LinkedList<EntityType>();
-                    final List<Integer> amounts = questSec.getIntegerList("mobs-killed-amounts");
-                    for (final String s : questSec.getStringList("mobs-killed")) {
-                        final EntityType mob = MiscUtil.getProperMobType(s);
-                        if (mob != null) {
-                            mobs.add(mob);
+                if (questSec.contains("mobs-killed-amounts")) {
+                    final List<Integer> mobAmounts = questSec.getIntegerList("mobs-killed-amounts");
+                    int index = 0;
+                    for (final int amt : mobAmounts) {
+                        if (quester.getQuestData(quest).getMobNumKilled().size() > 0) {
+                            quester.getQuestData(quest).mobNumKilled.set(index, amt);
                         }
-                        quester.getQuestData(quest).mobTypesKilled.clear();
-                        quester.getQuestData(quest).mobNumKilled.clear();
-                        for (final EntityType e : mobs) {
-                            quester.getQuestData(quest).mobTypesKilled.add(e);
-                            quester.getQuestData(quest).mobNumKilled.add(amounts.get(mobs.indexOf(e)));
-                        }
+                        index++;
                     }
                 }
                 if (questSec.contains("locations-to-reach")) {
                     final List<Boolean> hasReached = questSec.getBooleanList("has-reached-location");
-                    quester.getQuestData(quest).setLocationsReached(new LinkedList<Boolean>(hasReached));
+                    quester.getQuestData(quest).setLocationsReached(new LinkedList<>(hasReached));
                 }
                 if (questSec.contains("mob-tame-amounts")) {
                     final List<Integer> tameAmounts = questSec.getIntegerList("mob-tame-amounts");
-                    quester.getQuestData(quest).setMobsTamed(new LinkedList<Integer>(tameAmounts));
+                    quester.getQuestData(quest).setMobsTamed(new LinkedList<>(tameAmounts));
                 }
                 if (questSec.contains("sheep-sheared")) {
                     final List<Integer> sheepAmounts = questSec.getIntegerList("sheep-sheared");
-                    quester.getQuestData(quest).setSheepSheared(new LinkedList<Integer>(sheepAmounts));
+                    quester.getQuestData(quest).setSheepSheared(new LinkedList<>(sheepAmounts));
                 }
                 if (questSec.contains("passwords-said")) {
                     final List<Boolean> passAmounts = questSec.getBooleanList("passwords-said");
-                    quester.getQuestData(quest).setPasswordsSaid(new LinkedList<Boolean>(passAmounts));
+                    quester.getQuestData(quest).setPasswordsSaid(new LinkedList<>(passAmounts));
                 }
-                if (questSec.contains("custom-objectives")) {
-                    final List<Integer> customObjCount = questSec.getIntegerList("custom-objective-counts");
-                    quester.getQuestData(quest).setCustomObjectiveCounts(new LinkedList<Integer>(customObjCount));
+                if (questSec.contains("custom-objective-counts")) {
+                    final List<Integer> customObjCounts = questSec.getIntegerList("custom-objective-counts");
+                    quester.getQuestData(quest).setCustomObjectiveCounts(new LinkedList<>(customObjCounts));
                 }
                 if (questSec.contains("stage-delay")) {
                     quester.getQuestData(quest).setDelayTimeLeft(questSec.getLong("stage-delay"));
@@ -417,25 +406,20 @@ public class SeparatedYamlStorage implements StorageImplementation {
     
     @Override
     public Collection<UUID> getSavedUniqueIds() throws Exception {
-        final Collection<UUID> ids = new ConcurrentSkipListSet<UUID>();
+        final Collection<UUID> ids = new ConcurrentSkipListSet<>();
         final File folder = new File(directoryPath);
         if (!folder.exists()) {
             return ids;
         }
-        final File[] listOfFiles = folder.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(final File dir, final String name) {
-                return name.endsWith(".yml");
-            }
-        });
+        final File[] listOfFiles = folder.listFiles((dir, name) -> name.endsWith(".yml"));
 
         if (listOfFiles == null) {
             return ids;
         }
-        for (File listOfFile : listOfFiles) {
+        for (final File listOfFile : listOfFiles) {
             if (listOfFile.isFile()) {
                 final String name = listOfFile.getName().substring(0, listOfFile.getName().lastIndexOf("."));
-                UUID id = null;
+                final UUID id;
                 try {
                     id = UUID.fromString(name);
                 } catch (final IllegalArgumentException e) {

@@ -4,7 +4,7 @@
     <parent>
         <groupId>me.blackvein.quests</groupId>
         <artifactId>quests-parent</artifactId>
-        <version>4.0.5</version>
+        <version>4.1.1</version>
     </parent>
     <artifactId>quests-main</artifactId>
     
@@ -25,12 +25,12 @@
         <repository>
             <!-- Citizens, Denizen -->
             <id>citizens-repo</id>
-            <url>http://repo.citizensnpcs.co/</url>
+            <url>https://repo.citizensnpcs.co/</url>
         </repository>
         <repository>
             <!-- WorldEdit -->
             <id>sk89q-repo</id>
-            <url>http://maven.sk89q.com/repo/</url>
+            <url>https://maven.sk89q.com/repo/</url>
         </repository>
         <repository>
             <!-- Parties -->
@@ -40,12 +40,12 @@
         <repository>
             <!-- PlaceholderAPI -->
             <id>papi-repo</id>
-            <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
         <repository>
             <!-- Heroes, Vault -->
             <id>hc-repo</id>
-            <url>http://nexus.hc.to/content/repositories/pub_releases/</url>
+            <url>https://nexus.hc.to/content/repositories/pub_releases/</url>
         </repository>
         <repository>
             <id>vignette</id>
@@ -60,14 +60,14 @@
             <version>1.18.20</version>
         </dependency>
         <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>bukkit</artifactId>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
             <version>1.13.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.citizensnpcs</groupId>
-            <artifactId>citizens</artifactId>
+            <artifactId>citizensapi</artifactId>
             <version>2.0.21-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
@@ -132,15 +132,15 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.DRE2N</groupId>
-            <artifactId>DungeonsXL</artifactId>
-            <version>5e7b28ea55</version>
+            <groupId>com.github.PikaMug</groupId>
+            <artifactId>Unite</artifactId>
+            <version>1.1.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.PikaMug</groupId>
             <artifactId>LocaleLib</artifactId>
-            <version>398781f85e</version>
+            <version>2.3</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -224,7 +224,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.2.4</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
