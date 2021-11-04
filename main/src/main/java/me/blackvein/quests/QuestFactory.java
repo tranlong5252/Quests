@@ -897,7 +897,6 @@ public class QuestFactory implements ConversationAbandonedListener {
                 ? (Boolean) context.getSessionData(CK.PLN_OVERRIDE) : null);
         pln.set("reset-on-new-day", context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) != null
                 ? (Boolean) context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) : null);
-                ? context.getSessionData(CK.PLN_OVERRIDE) : null);
         if (pln.getKeys(false).isEmpty()) {
             section.set("planner", null);
         }

@@ -336,12 +336,11 @@ public class CmdExecutor implements CommandExecutor {
                     index++;
                 }
             }
-            final Quest q = plugin.getQuest(name.toString());
-            if (name.startsWith("quit ")) {
+            if (name.toString().startsWith("quit ")) {
                 questQuit((Player) cs, name.substring(5));
                 return;
             }
-            final Quest q = plugin.getQuest(name);
+            final Quest q = plugin.getQuest(name.toString());
             if (q != null) {
                 final Player player = (Player) cs;
                 final Quester quester = plugin.getQuester(player.getUniqueId());

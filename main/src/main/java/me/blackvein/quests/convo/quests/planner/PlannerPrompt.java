@@ -69,20 +69,17 @@ public class PlannerPrompt extends QuestsEditorNumericPrompt {
         switch (number) {
         case 1:
         case 2:
-        case 4:
-        case 5:
-            return ChatColor.BLUE;
+            case 4:
+            case 5:
+            case 6:
+                return ChatColor.BLUE;
         case 3:
             if (context.getSessionData(CK.PLN_START_DATE) == null || context.getSessionData(CK.PLN_END_DATE) == null) {
                 return ChatColor.GRAY;
             } else {
                 return ChatColor.BLUE;
             }
-        case 4:
-        case 5:
-        case 6:
-            return ChatColor.BLUE;
-        case 7:
+            case 7:
             return ChatColor.GREEN;
         default:
             return null;
