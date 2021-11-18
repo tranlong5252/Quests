@@ -241,13 +241,13 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
         
         // 8 - Setup commands
         if (getCommand("quests") != null) {
-            Objects.requireNonNull(getCommand("quests")).setExecutor(cmdExecutor);
+            Objects.requireNonNull(getCommand("quests")).setExecutor(getCommandExecutor());
         }
         if (getCommand("questadmin") != null) {
-            Objects.requireNonNull(getCommand("questadmin")).setExecutor(cmdExecutor);
+            Objects.requireNonNull(getCommand("questadmin")).setExecutor(getCommandExecutor());
         }
         if (getCommand("quest") != null) {
-            Objects.requireNonNull(getCommand("quest")).setExecutor(cmdExecutor);
+            Objects.requireNonNull(getCommand("quest")).setExecutor(getCommandExecutor());
         }
         
         // 9 - Build conversation factories
@@ -261,18 +261,18 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
                 .withLocalEcho(false).addConversationAbandonedListener(this);
 
         // 10 - Register listeners
-        getServer().getPluginManager().registerEvents(blockListener, this);
-        getServer().getPluginManager().registerEvents(itemListener, this);
+        getServer().getPluginManager().registerEvents(getBlockListener(), this);
+        getServer().getPluginManager().registerEvents(getItemListener(), this);
         depends.linkCitizens();
-        getServer().getPluginManager().registerEvents(playerListener, this);
+        getServer().getPluginManager().registerEvents(getPlayerListener(), this);
         if (settings.getStrictPlayerMovement() > 0) {
             final long ticks = settings.getStrictPlayerMovement() * 20L;
-            getServer().getScheduler().scheduleSyncRepeatingTask(this, moveThread, ticks, ticks);
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, getPlayerMoveThread(), ticks, ticks);
         }
         if (depends.getPartyProvider() != null) {
-            getServer().getPluginManager().registerEvents(uniteListener, this);
+            getServer().getPluginManager().registerEvents(getUniteListener(), this);
         } else if (depends.getPartiesApi() != null) {
-            getServer().getPluginManager().registerEvents(partiesListener, this);
+            getServer().getPluginManager().registerEvents(getPartiesListener(), this);
         }
 
         // 11 - Attempt to check for updates
@@ -507,7 +507,7 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
      * @return a collection of all online Questers
      */
     public Collection<Quester> getOnlineQuesters() {
-        final Collection<Quester> questers = new ConcurrentSkipListSet<>();;
+        final Collection<Quester> questers = new ConcurrentSkipListSet<>();
         for (final Quester q : getOfflineQuesters()) {
             if (q.getOfflinePlayer().isOnline()) {
                 // Workaround for issues with the compass on fast join
@@ -3194,7 +3194,12 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
                                 }
                                 try {
                                     if (dc == null) {
-                                        dc = DyeColor.valueOf(color.toUpperCase());
+                                        for (final DyeColor val : DyeColor.values()) {
+                                            if (val.name().replace("_", "").equalsIgnoreCase(color.replace("_", ""))) {
+                                                dc = val;
+                                                break;
+                                            }
+                                        }
                                     }
                                 } catch (final IllegalArgumentException e) {
                                     // Fail silently
@@ -4231,7 +4236,7 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
     }
 
     /**
-     * Checks if conversable is player in trial mode
+     * Checks if conversable is non-OP player in trial mode
      *
      * @param conversable the editor user to be checked
      * @return {@code true} if user is a Player with quests.mode.trial permission
@@ -4240,7 +4245,11 @@ public class Quests extends JavaPlugin implements ConversationAbandonedListener 
         if (!(conversable instanceof Player)) {
             return false;
         }
-        return ((Player)conversable).hasPermission("quests.mode.trial");
+        final Player player = ((Player)conversable);
+        if (player.isOp()) {
+            return false;
+        }
+        return player.hasPermission("quests.mode.trial");
     }
     
     /**
