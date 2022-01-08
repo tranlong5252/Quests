@@ -2491,7 +2491,7 @@ public class StageMainPrompt extends QuestsEditorNumericPrompt {
                 CustomObjective found = null;
                 for (final CustomObjective co : plugin.getCustomObjectives()) {
                     if (co.getModuleName().equals(moduleName)) {
-                        if (co.getName().toLowerCase().contains(input.toLowerCase())) {
+                        if (co.getName().equalsIgnoreCase(input)) {
                             found = co;
                             break;
                         }
