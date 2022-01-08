@@ -328,6 +328,14 @@ public class SqlStorage implements StorageImplementation {
                 }
             } else {
                 for (final Entry<Quest, Long> entry : quester.getCompletedTimes().entrySet()) {
+                    if (entry.getKey() == null) {
+                        plugin.getLogger().severe("Quest was null for completed times of quester " + quester.getUUID());
+                        return;
+                    }
+                    if (!quester.getAmountsCompleted().containsKey(entry.getKey())) {
+                        plugin.getLogger().warning("Quester " + quester.getUUID() + " is missing amounts completed for quest ID " + entry.getKey().getId());
+                        return;
+                    }
                     final int amount = quester.getAmountsCompleted().get(entry.getKey());
                     try (final PreparedStatement ps = c.prepareStatement(statementProcessor.apply(PLAYER_REDOABLE_QUESTS_INSERT))) {
                         ps.setString(1, uniqueId.toString());
@@ -621,13 +629,17 @@ public class SqlStorage implements StorageImplementation {
             string = string.replace("{", "").replace("}", "");
             int index = 0;
             for (final String section : string.split(",")) {
-                final int amt = Integer.parseInt(section);
-                final ItemStack is = objective.get(index);
-                final ItemStack temp = new ItemStack(is.getType(), amt, is.getDurability());
-                temp.addUnsafeEnchantments(is.getEnchantments());
-                temp.setItemMeta(is.getItemMeta());
-                list.add(temp);
-                index++;
+                if (index < objective.size()) {
+                    final int amt = Integer.parseInt(section);
+                    final ItemStack is = objective.get(index);
+                    final ItemStack temp = new ItemStack(is.getType(), amt, is.getDurability());
+                    temp.addUnsafeEnchantments(is.getEnchantments());
+                    temp.setItemMeta(is.getItemMeta());
+                    list.add(temp);
+                    index++;
+                } else {
+                    break;
+                }
             }
         }
         return list;
