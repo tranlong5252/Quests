@@ -958,7 +958,7 @@ public class Quest implements Comparable<Quest> {
                                         + rewards.getCommandsOverrideDisplay().get(index));
                             }
                         } else {
-                            quester.sendMessage("- " + ChatColor.DARK_GREEN + s);
+                            //quester.sendMessage("- " + ChatColor.DARK_GREEN + s);
                         }
                         index++;
                     }
@@ -970,8 +970,7 @@ public class Quest implements Comparable<Quest> {
                             quester.sendMessage("- " + ChatColor.DARK_GREEN + s + " ("
                                     + rewards.getPermissionWorlds().get(index) + ")");
                         } else {
-                            quester.sendMessage("- " + ChatColor.DARK_GREEN + s);
-                            
+                            //quester.sendMessage("- " + ChatColor.DARK_GREEN + s);
                         }
                         index++;
                     }
