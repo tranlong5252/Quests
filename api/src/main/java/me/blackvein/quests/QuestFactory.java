@@ -37,21 +37,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class QuestFactory implements ConversationAbandonedListener {
 
@@ -112,7 +107,7 @@ public class QuestFactory implements ConversationAbandonedListener {
     }
 
     /**
-     * @deprecated Use {@link#getNamesOfQuestsBeingEdited}
+     * @deprecated Use {@link #getNamesOfQuestsBeingEdited}
      */
     @Deprecated
     public List<String> getNames() {
@@ -120,7 +115,7 @@ public class QuestFactory implements ConversationAbandonedListener {
     }
 
     /**
-     * @deprecated Use {@link#setNamesOfQuestsBeingEdited}
+     * @deprecated Use {@link #setNamesOfQuestsBeingEdited(List)}&lt;{@link String}&gt;
      */
     @Deprecated
     public void setNames(final List<String> names) {
