@@ -889,9 +889,9 @@ public class QuestFactory implements ConversationAbandonedListener {
         final Long cooldown = (Long) context.getSessionData(CK.PLN_COOLDOWN);
         pln.set("cooldown", cooldown != null ? (cooldown / 1000L) : null);
         pln.set("override", context.getSessionData(CK.PLN_OVERRIDE) != null 
-                ? (Boolean) context.getSessionData(CK.PLN_OVERRIDE) : null);
+                ? context.getSessionData(CK.PLN_OVERRIDE) : null);
         pln.set("reset-on-new-day", context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) != null
-                ? (Boolean) context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) : null);
+                ? context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) : null);
         if (pln.getKeys(false).isEmpty()) {
             section.set("planner", null);
         }
