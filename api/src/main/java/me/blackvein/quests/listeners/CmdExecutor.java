@@ -731,12 +731,16 @@ public class CmdExecutor implements CommandExecutor {
     }
 
     private void questsTake(final Player player, final String[] args) {
-        if (plugin.getSettings().canAllowCommands() == true) {
+        if (plugin.getSettings().canAllowCommands()) {
             if (player.hasPermission("quests.take")) {
                 if (args.length == 1) {
                     player.sendMessage(ChatColor.YELLOW + Lang.get(player, "COMMAND_TAKE_USAGE"));
                 } else {
                     final Quest questToFind = plugin.getQuest(concatArgArray(args, 1, args.length - 1, ' '));
+                    if (plugin.getSettings().getBlockQuests().contains(questToFind.getId())) {
+                        player.sendMessage(ChatColor.YELLOW + Lang.get(player, "questTakeDisabled"));
+                        return;
+                    }
                     final Quester quester = plugin.getQuester(player.getUniqueId());
                     if (questToFind != null) {
                         for (final Quest q : quester.getCurrentQuests().keySet()) {

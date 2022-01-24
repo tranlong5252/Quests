@@ -17,6 +17,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Settings {
@@ -45,6 +47,7 @@ public class Settings {
     private boolean translateNames = false;
     private boolean translateSubCommands = false;
     private boolean updateCheck = true;
+    private List<String> blockQuests = new ArrayList<>();
     
     public Settings(final Quests plugin) {
         this.plugin = plugin;
@@ -188,6 +191,12 @@ public class Settings {
     public void setUpdateCheck(final boolean updateCheck) {
         this.updateCheck = updateCheck;
     }
+    public List<String> getBlockQuests() {
+        return blockQuests;
+    }
+    public void setBlockQuests(final List<String> blockQuests) {
+        this.blockQuests = blockQuests;
+    }
     
     public void init() {
         final FileConfiguration config = plugin.getConfig();
@@ -220,6 +229,7 @@ public class Settings {
         translateNames = config.getBoolean("translate-names", true);
         translateSubCommands = config.getBoolean("translate-subcommands", false);
         updateCheck = config.getBoolean("update-check", true);
+        blockQuests = config.getStringList("block-quest-take");
         try {
             config.save(new File(plugin.getDataFolder(), "config.yml"));
         } catch (final IOException e) {

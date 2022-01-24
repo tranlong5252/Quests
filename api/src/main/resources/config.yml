@@ -37,3 +37,4 @@ top-limit: 150
 translate-names: true
 translate-subcommands: false
 update-check: true
+block-quest-take: []
