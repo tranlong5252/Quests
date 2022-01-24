@@ -12,10 +12,9 @@
 
 package me.blackvein.quests.tasks;
 
-import org.bukkit.entity.Player;
-
 import me.blackvein.quests.Quests;
 import net.citizensnpcs.api.CitizensAPI;
+import org.bukkit.entity.Player;
 
 public class PlayerMoveThread implements Runnable {
 

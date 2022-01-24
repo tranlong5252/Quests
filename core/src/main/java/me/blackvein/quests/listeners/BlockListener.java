@@ -13,14 +13,14 @@
 package me.blackvein.quests.listeners;
 
 import me.blackvein.quests.Quester;
-import me.blackvein.quests.quests.IQuest;
-import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.Quests;
-import me.blackvein.quests.quests.IStage;
 import me.blackvein.quests.enums.ObjectiveType;
 import me.blackvein.quests.events.quester.QuesterPostUpdateObjectiveEvent;
 import me.blackvein.quests.events.quester.QuesterPreUpdateObjectiveEvent;
+import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.quests.BukkitObjective;
+import me.blackvein.quests.quests.IQuest;
+import me.blackvein.quests.quests.IStage;
 import me.blackvein.quests.util.ItemUtil;
 import me.blackvein.quests.util.Lang;
 import org.bukkit.ChatColor;

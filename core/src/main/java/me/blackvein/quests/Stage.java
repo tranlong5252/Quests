@@ -14,8 +14,8 @@ package me.blackvein.quests;
 
 import me.blackvein.quests.actions.IAction;
 import me.blackvein.quests.conditions.ICondition;
-import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.enums.ObjectiveType;
+import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.quests.IStage;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;

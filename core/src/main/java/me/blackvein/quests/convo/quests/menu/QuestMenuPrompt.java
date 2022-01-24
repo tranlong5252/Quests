@@ -12,7 +12,6 @@
 
 package me.blackvein.quests.convo.quests.menu;
 
-import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.Quests;
 import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorNumericPrompt;
@@ -20,6 +19,7 @@ import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
 import me.blackvein.quests.convo.quests.main.QuestMainPrompt;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
+import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.Lang;
 import org.bukkit.ChatColor;

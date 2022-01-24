@@ -12,17 +12,15 @@
 
 package me.blackvein.quests.listeners;
 
+import com.alessiodp.parties.api.events.bukkit.party.BukkitPartiesPartyPostCreateEvent;
+import com.alessiodp.parties.api.events.bukkit.player.BukkitPartiesPlayerPostJoinEvent;
+import com.alessiodp.parties.api.events.bukkit.player.BukkitPartiesPlayerPostLeaveEvent;
+import me.blackvein.quests.util.Lang;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-
-import com.alessiodp.parties.api.events.bukkit.party.BukkitPartiesPartyPostCreateEvent;
-import com.alessiodp.parties.api.events.bukkit.player.BukkitPartiesPlayerPostJoinEvent;
-import com.alessiodp.parties.api.events.bukkit.player.BukkitPartiesPlayerPostLeaveEvent;
-
-import me.blackvein.quests.util.Lang;
 
 public class PartiesListener implements Listener {
 

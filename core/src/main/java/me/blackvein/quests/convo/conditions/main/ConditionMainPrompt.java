@@ -12,10 +12,8 @@
 
 package me.blackvein.quests.convo.conditions.main;
 
-import me.blackvein.quests.conditions.ICondition;
-import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.Quests;
-import me.blackvein.quests.quests.IStage;
+import me.blackvein.quests.conditions.ICondition;
 import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.conditions.ConditionsEditorNumericPrompt;
 import me.blackvein.quests.convo.conditions.ConditionsEditorStringPrompt;
@@ -24,6 +22,8 @@ import me.blackvein.quests.convo.conditions.tasks.PlayerPrompt;
 import me.blackvein.quests.convo.conditions.tasks.WorldPrompt;
 import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenStringPromptEvent;
+import me.blackvein.quests.quests.IQuest;
+import me.blackvein.quests.quests.IStage;
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.Lang;
 import org.bukkit.ChatColor;

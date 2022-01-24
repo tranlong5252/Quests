@@ -13,7 +13,6 @@
 package me.blackvein.quests.convo.quests.main;
 
 import com.sk89q.worldguard.protection.managers.RegionManager;
-import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.Quests;
 import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.generic.ItemStackPrompt;
@@ -26,6 +25,7 @@ import me.blackvein.quests.convo.quests.rewards.RewardsPrompt;
 import me.blackvein.quests.convo.quests.stages.StageMenuPrompt;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
+import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.reflect.worldguard.WorldGuardAPI;
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.ItemUtil;

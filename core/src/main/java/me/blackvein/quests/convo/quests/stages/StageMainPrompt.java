@@ -12,10 +12,9 @@
 
 package me.blackvein.quests.convo.quests.stages;
 
+import me.blackvein.quests.Quests;
 import me.blackvein.quests.actions.IAction;
 import me.blackvein.quests.conditions.ICondition;
-import me.blackvein.quests.module.ICustomObjective;
-import me.blackvein.quests.Quests;
 import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.generic.OverridePrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorNumericPrompt;
@@ -26,6 +25,7 @@ import me.blackvein.quests.convo.quests.objectives.MobsPrompt;
 import me.blackvein.quests.convo.quests.objectives.NpcsPrompt;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
+import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.ConfigUtil;
 import me.blackvein.quests.util.Lang;
@@ -42,14 +42,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeSet;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class StageMainPrompt extends QuestsEditorNumericPrompt {

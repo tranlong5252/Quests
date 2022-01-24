@@ -12,9 +12,9 @@
 
 package me.blackvein.quests.tasks;
 
-import me.blackvein.quests.quests.IQuest;
-import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.Quests;
+import me.blackvein.quests.player.IQuester;
+import me.blackvein.quests.quests.IQuest;
 
 public class StageTimer implements Runnable {
 

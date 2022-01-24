@@ -12,12 +12,12 @@
 
 package me.blackvein.quests.convo.quests.options;
 
-import me.blackvein.quests.quests.BukkitOptions;
 import me.blackvein.quests.Quests;
 import me.blackvein.quests.convo.quests.QuestsEditorNumericPrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
+import me.blackvein.quests.quests.BukkitOptions;
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.Lang;
 import me.pikamug.unite.api.objects.PartyProvider;

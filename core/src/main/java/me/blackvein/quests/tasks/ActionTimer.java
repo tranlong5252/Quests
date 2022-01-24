@@ -12,8 +12,8 @@
 
 package me.blackvein.quests.tasks;
 
-import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.player.IQuester;
+import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.util.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;

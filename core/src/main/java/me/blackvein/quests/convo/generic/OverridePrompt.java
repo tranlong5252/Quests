@@ -12,12 +12,11 @@
 
 package me.blackvein.quests.convo.generic;
 
+import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
+import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.Prompt;
-
-import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
-import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class OverridePrompt extends QuestsEditorStringPrompt {

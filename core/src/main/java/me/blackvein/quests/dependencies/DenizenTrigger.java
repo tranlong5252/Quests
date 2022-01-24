@@ -12,8 +12,8 @@
 
 package me.blackvein.quests.dependencies;
 
-import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.Quests;
+import me.blackvein.quests.player.IQuester;
 
 public class DenizenTrigger {
     private final Quests plugin;

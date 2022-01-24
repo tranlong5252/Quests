@@ -12,16 +12,16 @@
 
 package me.blackvein.quests.convo.actions.menu;
 
-import me.blackvein.quests.actions.IAction;
-import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.Quests;
-import me.blackvein.quests.quests.IStage;
+import me.blackvein.quests.actions.IAction;
 import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.actions.ActionsEditorNumericPrompt;
 import me.blackvein.quests.convo.actions.ActionsEditorStringPrompt;
 import me.blackvein.quests.convo.actions.main.ActionMainPrompt;
 import me.blackvein.quests.events.editor.actions.ActionsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.actions.ActionsEditorPostOpenStringPromptEvent;
+import me.blackvein.quests.quests.IQuest;
+import me.blackvein.quests.quests.IStage;
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.Lang;
 import org.bukkit.ChatColor;

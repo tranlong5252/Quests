@@ -12,13 +12,13 @@
 
 package me.blackvein.quests.storage.implementation.sql.connection;
 
+import me.blackvein.quests.Quests;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
-
-import me.blackvein.quests.Quests;
 
 public interface ConnectionFactory {
     String getImplementationName();

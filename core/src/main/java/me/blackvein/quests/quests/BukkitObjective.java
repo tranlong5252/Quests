@@ -12,9 +12,8 @@
 
 package me.blackvein.quests.quests;
 
-import org.bukkit.inventory.ItemStack;
-
 import me.blackvein.quests.enums.ObjectiveType;
+import org.bukkit.inventory.ItemStack;
 
 public class BukkitObjective implements Objective {
     private final ObjectiveType type;

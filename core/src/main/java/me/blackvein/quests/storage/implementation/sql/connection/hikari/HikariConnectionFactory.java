@@ -12,21 +12,19 @@
 
 package me.blackvein.quests.storage.implementation.sql.connection.hikari;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import me.blackvein.quests.Quests;
+import me.blackvein.quests.storage.implementation.sql.connection.ConnectionFactory;
+import me.blackvein.quests.storage.misc.StorageCredentials;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.bukkit.plugin.java.JavaPlugin;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import me.blackvein.quests.Quests;
-import me.blackvein.quests.storage.implementation.sql.connection.ConnectionFactory;
-import me.blackvein.quests.storage.misc.StorageCredentials;
 
 public abstract class HikariConnectionFactory implements ConnectionFactory {
     private final StorageCredentials configuration;

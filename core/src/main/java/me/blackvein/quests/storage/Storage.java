@@ -12,8 +12,8 @@
 
 package me.blackvein.quests.storage;
 
-import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.Quests;
+import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.storage.implementation.StorageImplementation;
 
 import java.util.Collection;

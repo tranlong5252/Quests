@@ -12,10 +12,6 @@
 
 package me.blackvein.quests.convo.actions.tasks;
 
-import org.bukkit.ChatColor;
-import org.bukkit.conversations.ConversationContext;
-import org.bukkit.conversations.Prompt;
-
 import me.blackvein.quests.Quests;
 import me.blackvein.quests.convo.actions.ActionsEditorNumericPrompt;
 import me.blackvein.quests.convo.actions.ActionsEditorStringPrompt;
@@ -25,6 +21,9 @@ import me.blackvein.quests.events.editor.actions.ActionsEditorPostOpenStringProm
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.Lang;
 import me.blackvein.quests.util.MiscUtil;
+import org.bukkit.ChatColor;
+import org.bukkit.conversations.ConversationContext;
+import org.bukkit.conversations.Prompt;
 import org.jetbrains.annotations.NotNull;
 
 public class TimerPrompt extends ActionsEditorNumericPrompt {
