@@ -17,4 +17,6 @@ public interface Planner {
     void setCooldown(final long cooldown);
     boolean getOverride();
     void setOverride(final boolean override);
+    boolean getResetOnNewDay();
+    void setResetOnNewDay(final boolean resetOnNewDay);
 }

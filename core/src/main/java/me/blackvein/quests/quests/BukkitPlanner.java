@@ -12,9 +12,6 @@
 
 package me.blackvein.quests.quests;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -24,7 +21,6 @@ public class BukkitPlanner implements Planner {
     public long repeat = -1;
     public long cooldown = -1;
     public boolean override = false;
-    @Getter @Setter
     public boolean resetOnNewDay = false;
 
     public String getStart() {
@@ -92,5 +88,11 @@ public class BukkitPlanner implements Planner {
     }
     public void setOverride(final boolean override) {
         this.override = override;
+    }
+    public boolean getResetOnNewDay() {
+        return resetOnNewDay;
+    }
+    public void setResetOnNewDay(final boolean resetOnNewDay) {
+        this.resetOnNewDay = resetOnNewDay;
     }
 }

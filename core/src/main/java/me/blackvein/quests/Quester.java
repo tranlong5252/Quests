@@ -68,18 +68,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Crops;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.BiFunction;
@@ -4317,7 +4309,7 @@ public class Quester implements IQuester {
         setTimeZone(TimeZone.getTimeZone(ZoneId.SHORT_IDS.get("VST")));
 
     }};
-    public boolean isResetCooldown(Quest quest) {
+    public boolean isResetCooldown(IQuest quest) {
         long completedTime = getCompletedTimes().get(quest);
         if (quest.getPlanner().getCooldown() > 0) {
             return Integer.parseInt(format.format(new Date())) > Integer.parseInt(format.format(new Date(completedTime)));
