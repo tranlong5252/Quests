@@ -734,12 +734,13 @@ public class CmdExecutor implements CommandExecutor {
                 if (args.length == 1) {
                     Lang.send(player, ChatColor.YELLOW + Lang.get(player, "COMMAND_TAKE_USAGE"));
                 } else {
-                    final IQuest questToFind = plugin.getQuest(concatArgArray(args, 1, args.length - 1, ' '));
-                    if (plugin.getSettings().getBlockQuests().contains(questToFind.getId())) {
+                    String id = concatArgArray(args, 1, args.length - 1, ' ');
+                    final IQuest questToFind = plugin.getQuest(id);
+                    final IQuester quester = plugin.getQuester(player.getUniqueId());
+                    if (plugin.getSettings().getBlockQuests().contains(id)) {
                         player.sendMessage(ChatColor.YELLOW + Lang.get(player, "questTakeDisabled"));
                         return;
                     }
-                    final IQuester quester = plugin.getQuester(player.getUniqueId());
                     if (questToFind != null) {
                         for (final IQuest q : quester.getCurrentQuests().keySet()) {
                             if (q.getId().equals(questToFind.getId())) {

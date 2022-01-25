@@ -89,7 +89,7 @@ public class BukkitPlanner implements Planner {
     public void setOverride(final boolean override) {
         this.override = override;
     }
-    public boolean getResetOnNewDay() {
+    public boolean isResetOnNewDay() {
         return resetOnNewDay;
     }
     public void setResetOnNewDay(final boolean resetOnNewDay) {

@@ -230,4 +230,6 @@ public interface IQuester extends Comparable<IQuester> {
     boolean isSelectingBlock();
 
     boolean isInRegion(final String regionID);
+
+    boolean isResetCooldown(final IQuest quest);
 }

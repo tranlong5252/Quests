@@ -153,7 +153,7 @@ public class PlannerPrompt extends QuestsEditorNumericPrompt {
             }
         case 6:
             if (context.getSessionData(CK.PLN_RESET_ON_NEW_DAY) == null) {
-                final boolean defaultOpt = new Planner().isResetOnNewDay();
+                final boolean defaultOpt = new BukkitPlanner().isResetOnNewDay();
                 return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN
                         + Lang.get(String.valueOf(defaultOpt)) : ChatColor.RED
                         + Lang.get(String.valueOf(defaultOpt))) + ChatColor.GRAY + ")";
