@@ -2,6 +2,7 @@ package me.blackvein.quests.quests;
 
 import me.blackvein.quests.actions.IAction;
 import me.blackvein.quests.player.IQuester;
+import me.blackvein.quests.util.Title;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -11,6 +12,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.LinkedList;
 
 public interface IQuest extends Comparable<IQuest> {
+
     Plugin getPlugin();
 
     void setPlugin(Plugin plugin);
@@ -34,6 +36,10 @@ public interface IQuest extends Comparable<IQuest> {
     String getRegionStart();
 
     void setRegionStart(final String regionStart);
+
+    Title getTitle();
+
+    void setTitle(final Title title);
 
     ItemStack getGUIDisplay();
 

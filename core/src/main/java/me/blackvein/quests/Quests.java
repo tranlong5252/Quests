@@ -1790,6 +1790,22 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 throw new QuestFormatException("block-start has invalid location format", questKey);
             }
         }
+        if (config.contains("quests." + questKey + ".start-title")) {
+            final ConfigurationSection titleSection = config.getConfigurationSection("quests." + questKey + ".start-title");
+            if (titleSection != null) {
+                String title = titleSection.getString("title");
+                String subtitle = titleSection.getString("subtitle");
+                int fadeIn = titleSection.getInt("fade-in");
+                int fadeOut = titleSection.getInt("fade-out");
+                int duration = titleSection.getInt("duration");
+
+                Title t = Title.builder().title(title).subtitle(subtitle)
+                        .fadeIn(fadeIn).fadeOut(fadeOut).duration(duration).build();
+                quest.setTitle(t);
+            } else {
+                throw new QuestFormatException("start-title has invalid location format", questKey);
+            }
+        }
         if (config.contains("quests." + questKey + ".region")
                 && getDependencies().getWorldGuardApi() != null) {
             final String region = config.getString("quests." + questKey + ".region");

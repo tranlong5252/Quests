@@ -576,6 +576,14 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
                 ? context.getSessionData(CK.Q_REGION) : null);
         section.set("gui-display", context.getSessionData(CK.Q_GUIDISPLAY) != null 
                 ? context.getSessionData(CK.Q_GUIDISPLAY) : null);
+        Title title = context.getSessionData(CK.Q_TITLE) != null ? (Title) context.getSessionData(CK.Q_TITLE) : null;
+        if (title != null) {
+            section.set("start-title.title", title.getTitle());
+            section.set("start-title.subtitle", title.getSubtitle());
+            section.set("start-title.fade-in", title.getFadeIn());
+            section.set("start-title.fade-out", title.getFadeOut());
+            section.set("start-title.duration", title.getDuration());
+        }
         saveRequirements(context, section);
         saveStages(context, section);
         saveRewards(context, section);

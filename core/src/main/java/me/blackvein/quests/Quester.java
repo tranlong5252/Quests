@@ -27,6 +27,7 @@ import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.quests.*;
 import me.blackvein.quests.storage.Storage;
 import me.blackvein.quests.tasks.StageTimer;
+import me.blackvein.quests.tasks.TitleRepeater;
 import me.blackvein.quests.util.*;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.pikamug.unite.api.objects.PartyProvider;
@@ -47,6 +48,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Crops;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
@@ -68,6 +70,7 @@ public class Quester implements IQuester {
     protected int questPoints = 0;
     private String compassTargetQuestId;
     private long lastNotifiedCondition = 0L;
+    protected ConcurrentHashMap<IQuest, BukkitTask> questTitleTasks = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<Integer, IQuest> timers = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<IQuest, Integer> currentQuests = new ConcurrentHashMap<IQuest, Integer>() {
 
@@ -77,6 +80,7 @@ public class Quester implements IQuester {
         public Integer put(final @NotNull IQuest key, final @NotNull Integer val) {
             final Integer data = super.put(key, val);
             updateJournal();
+            checkTitleRepeater(key);
             return data;
         }
 
@@ -84,6 +88,7 @@ public class Quester implements IQuester {
         public Integer remove(final @NotNull Object key) {
             final Integer i = super.remove(key);
             updateJournal();
+            checkTitleRepeater((IQuest) key);
             return i;
         }
 
@@ -3739,12 +3744,32 @@ public class Quester implements IQuester {
                         }*/
                     }
                     exists = true;
+                    checkTitleRepeater(q);
                     break;
                 }
             }
             if (!exists) {
                 sendMessage(ChatColor.RED + Lang.get("questNotExist").replace("<quest>", ChatColor.DARK_PURPLE 
                         + quest.getName() + ChatColor.RED));
+            }
+        }
+    }
+
+    private void checkTitleRepeater(final IQuest q) {
+        if (currentQuests.containsKey(q)) {
+            if (q.getTitle() != null && q.getTitle().getDuration() == -1) {
+                boolean start = false;
+                BukkitTask task = questTitleTasks.get(q);
+                if (task != null) {
+                    if (task.isCancelled())
+                        start = true;
+                } else start = true;
+                if (start)
+                    TitleRepeater.startTask(plugin, getPlayer(), q.getTitle());
+            }
+        } else {
+            if (questTitleTasks.containsKey(q)) {
+                questTitleTasks.remove(q).cancel();
             }
         }
     }

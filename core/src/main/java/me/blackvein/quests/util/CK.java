@@ -29,6 +29,7 @@ public class CK {
     public static final String Q_INITIAL_EVENT = "initialEvent";
     public static final String Q_REGION = "region";
     public static final String Q_GUIDISPLAY = "guiDisplay";
+    public static final String Q_TITLE = "start-title";
     // Requirements
     public static final String REQ_MONEY = "moneyReq";
     public static final String REQ_QUEST_POINTS = "questPointsReq";

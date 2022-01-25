@@ -20,6 +20,8 @@ import com.codisimus.plugins.phatloots.loot.LootBundle;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.player.UserManager;
 import com.herocraftonline.heroes.characters.Hero;
+import lombok.Getter;
+import lombok.Setter;
 import me.blackvein.quests.actions.Action;
 import me.blackvein.quests.actions.IAction;
 import me.blackvein.quests.conditions.ICondition;
@@ -64,6 +66,8 @@ public class Quest implements IQuest {
     protected Location blockStart;
     protected String regionStart = null;
     protected Action initialAction;
+    @Getter @Setter
+    protected Title title;
     private final BukkitRequirements requirements = new BukkitRequirements();
     private final BukkitPlanner planner = new BukkitPlanner();
     private final BukkitRewards rewards = new BukkitRewards();
