@@ -549,7 +549,7 @@ public class Quester implements IQuester {
             }
             return false;
         } else if (getCompletedQuests().contains(quest) && getRemainingCooldown(quest) > 0
-                && !quest.getPlanner().getOverride()) {
+                && !isResetCooldown(quest) && !quest.getPlanner().getOverride()) {
             if (giveReason) {
                 final String msg = Lang.get(getPlayer(), "questTooEarly").replace("<quest>", ChatColor.AQUA
                         + quest.getName()+ ChatColor.YELLOW).replace("<time>", ChatColor.DARK_PURPLE
@@ -4407,5 +4407,19 @@ public class Quester implements IQuester {
         }
         return plugin.getDependencies().getWorldGuardApi().getApplicableRegionsIDs(getPlayer().getWorld(),
                 getPlayer().getLocation()).contains(regionID);
+    }
+
+    private static final SimpleDateFormat format = new SimpleDateFormat("dd") {{
+
+        setTimeZone(TimeZone.getTimeZone(ZoneId.SHORT_IDS.get("VST")));
+
+    }};
+
+    public boolean isResetCooldown(IQuest quest) {
+        long completedTime = getCompletedTimes().get(quest);
+        if (quest.getPlanner().getCooldown() > 0) {
+            return Integer.parseInt(format.format(new Date())) > Integer.parseInt(format.format(new Date(completedTime)));
+        }
+        return true;
     }
 }
