@@ -37,11 +37,25 @@ import me.blackvein.quests.exceptions.ConditionFormatException;
 import me.blackvein.quests.exceptions.QuestFormatException;
 import me.blackvein.quests.exceptions.StageFormatException;
 import me.blackvein.quests.interfaces.ReloadCallback;
-import me.blackvein.quests.listeners.*;
+import me.blackvein.quests.listeners.BlockListener;
+import me.blackvein.quests.listeners.CmdExecutor;
+import me.blackvein.quests.listeners.ConvoListener;
+import me.blackvein.quests.listeners.ItemListener;
+import me.blackvein.quests.listeners.NpcListener;
+import me.blackvein.quests.listeners.PartiesListener;
+import me.blackvein.quests.listeners.PlayerListener;
+import me.blackvein.quests.listeners.UniteListener;
 import me.blackvein.quests.logging.QuestsLog4JFilter;
 import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.player.IQuester;
-import me.blackvein.quests.quests.*;
+import me.blackvein.quests.quests.BukkitQuestFactory;
+import me.blackvein.quests.quests.IQuest;
+import me.blackvein.quests.quests.IStage;
+import me.blackvein.quests.quests.Options;
+import me.blackvein.quests.quests.Planner;
+import me.blackvein.quests.quests.QuestFactory;
+import me.blackvein.quests.quests.Requirements;
+import me.blackvein.quests.quests.Rewards;
 import me.blackvein.quests.statistics.Metrics;
 import me.blackvein.quests.storage.Storage;
 import me.blackvein.quests.storage.StorageFactory;
@@ -55,7 +69,14 @@ import net.citizensnpcs.api.npc.NPC;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.logging.log4j.LogManager;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.DyeColor;
+import org.bukkit.Effect;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -72,7 +93,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -80,14 +100,31 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
@@ -2286,9 +2323,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             pln.setEnd(config.getString("quests." + questKey + ".planner.end"));
         }
         if (config.contains("quests." + questKey + ".planner.repeat")) {
-            if (config.getLong("quests." + questKey + ".planner.repeat", -999) != -999) {
-                pln.setRepeat(config.getLong("quests." + questKey + ".planner.repeat") * 1000L);
-            } else if (config.getInt("quests." + questKey + ".planner.repeat", -999) != -999) {
+            if (config.getInt("quests." + questKey + ".planner.repeat", -999) != -999) {
                 pln.setRepeat(config.getInt("quests." + questKey + ".planner.repeat") * 1000L);
             } else {
                 throw new QuestFormatException("Requirement repeat is not a number", questKey);
@@ -4170,47 +4205,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
 
     public static SkillType getMcMMOSkill(final String s) {
         return SkillType.getSkill(s);
-    }
-
-    /**
-     * @deprecated Use InventoryUtil.removeItem(Inventory, ItemStack)
-     */
-    @Deprecated
-    public static boolean removeItem(final Inventory inventory, final ItemStack is) {
-        final int amount = is.getAmount();
-        final HashMap<Integer, ? extends ItemStack> allItems = inventory.all(is.getType());
-        final HashMap<Integer, Integer> removeFrom = new HashMap<>();
-        int foundAmount = 0;
-        for (final Map.Entry<Integer, ? extends ItemStack> item : allItems.entrySet()) {
-            if (ItemUtil.compareItems(is, item.getValue(), true) == 0) {
-                if (item.getValue().getAmount() >= amount - foundAmount) {
-                    removeFrom.put(item.getKey(), amount - foundAmount);
-                    foundAmount = amount;
-                } else {
-                    foundAmount += item.getValue().getAmount();
-                    removeFrom.put(item.getKey(), item.getValue().getAmount());
-                }
-                if (foundAmount >= amount) {
-                    break;
-                }
-            }
-        }
-        if (foundAmount == amount) {
-            for (final Map.Entry<Integer, Integer> toRemove : removeFrom.entrySet()) {
-                final ItemStack item = inventory.getItem(toRemove.getKey());
-                if (item == null) {
-                    continue;
-                }
-                if (item.getAmount() - toRemove.getValue() <= 0) {
-                    inventory.clear(toRemove.getKey());
-                } else {
-                    item.setAmount(item.getAmount() - toRemove.getValue());
-                    inventory.setItem(toRemove.getKey(), item);
-                }
-            }
-            return true;
-        }
-        return false;
     }
 
     /**

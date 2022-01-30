@@ -17,12 +17,15 @@ import com.alessiodp.parties.api.interfaces.PartyPlayer;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.player.UserManager;
 import me.blackvein.quests.conditions.ICondition;
+import me.blackvein.quests.config.ISettings;
+import me.blackvein.quests.convo.misc.QuestAbandonPrompt;
 import me.blackvein.quests.dependencies.IDependencies;
+import me.blackvein.quests.events.quest.QuestQuitEvent;
+import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.enums.ObjectiveType;
 import me.blackvein.quests.events.quest.QuestTakeEvent;
 import me.blackvein.quests.events.quester.*;
 import me.blackvein.quests.item.QuestJournal;
-import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.quests.*;
 import me.blackvein.quests.storage.Storage;
@@ -37,6 +40,7 @@ import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -66,13 +70,14 @@ public class Quester implements IQuester {
     private final Quests plugin;
     private UUID id;
     protected String questIdToTake;
+    protected String questIdToQuit;
     private String lastKnownName;
     protected int questPoints = 0;
     private String compassTargetQuestId;
     private long lastNotifiedCondition = 0L;
     protected ConcurrentHashMap<IQuest, BukkitTask> questTitleTasks = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<Integer, IQuest> timers = new ConcurrentHashMap<>();
-    public ConcurrentHashMap<IQuest, Integer> currentQuests = new ConcurrentHashMap<IQuest, Integer>() {
+    protected ConcurrentHashMap<IQuest, Integer> currentQuests = new ConcurrentHashMap<IQuest, Integer>() {
 
         private static final long serialVersionUID = 6361484975823846780L;
 
@@ -245,6 +250,16 @@ public class Quester implements IQuester {
     @Override
     public void setQuestIdToTake(final String questIdToTake) {
         this.questIdToTake = questIdToTake;
+    }
+
+    @Override
+    public String getQuestIdToQuit() {
+        return questIdToQuit;
+    }
+
+    @Override
+    public void setQuestIdToQuit(final String questIdToQuit) {
+        this.questIdToQuit = questIdToQuit;
     }
 
     @Override
@@ -440,7 +455,121 @@ public class Quester implements IQuester {
             getPlayer().getInventory().setItem(index, journal.toItemStack());
         }
     }
-    
+
+    /**
+     * Check if quest is available and, if so, ask Quester if they would like to start it<p>
+     *
+     * @param quest The quest to check and then offer
+     * @param giveReason Whether to inform Quester of unavailability
+     * @return true if successful
+     */
+    public boolean offerQuest(final IQuest quest, final boolean giveReason) {
+        if (quest == null) {
+            return false;
+        }
+        final QuestTakeEvent event = new QuestTakeEvent(quest, this);
+        plugin.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+        if (canAcceptOffer(quest, giveReason)) {
+            if (getPlayer() != null) {
+                if (!getPlayer().isConversing()) {
+                    setQuestIdToTake(quest.getId());
+                    final String s = ChatColor.GOLD + Lang.get("questObjectivesTitle")
+                            .replace("<quest>", quest.getName()) + "\n" + ChatColor.RESET + quest.getDescription();
+                    for (final String msg : s.split("<br>")) {
+                        sendMessage(msg);
+                    }
+                    if (!plugin.getSettings().canAskConfirmation()) {
+                        takeQuest(quest, false);
+                    } else {
+                        plugin.getConversationFactory().buildConversation(getPlayer()).begin();
+                    }
+                    return true;
+                } else {
+                    sendMessage(ChatColor.YELLOW + Lang.get(getPlayer(), "alreadyConversing"));
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if quest is available to this Quester<p>
+     *
+     * @param quest The quest to check
+     * @param giveReason Whether to inform Quester of unavailability
+     * @return true if available
+     */
+    public boolean canAcceptOffer(final IQuest quest, final boolean giveReason) {
+        if (quest == null) {
+            return false;
+        }
+        if (getCurrentQuests().size() >= plugin.getSettings().getMaxQuests() && plugin.getSettings().getMaxQuests()
+                > 0) {
+            if (giveReason) {
+                final String msg = Lang.get(getPlayer(), "questMaxAllowed").replace("<number>",
+                        String.valueOf(plugin.getSettings().getMaxQuests()));
+                sendMessage(ChatColor.YELLOW + msg);
+            }
+            return false;
+        } else if (getCurrentQuests().containsKey(quest)) {
+            if (giveReason) {
+                final String msg = Lang.get(getPlayer(), "questAlreadyOn");
+                sendMessage(ChatColor.YELLOW + msg);
+            }
+            return false;
+        } else if (getCompletedQuests().contains(quest) && quest.getPlanner().getCooldown() < 0) {
+            if (giveReason) {
+                final String msg = Lang.get(getPlayer(), "questAlreadyCompleted")
+                        .replace("<quest>", ChatColor.DARK_PURPLE + quest.getName() + ChatColor.YELLOW);
+                sendMessage(ChatColor.YELLOW + msg);
+            }
+            return false;
+        } else if (plugin.getDependencies().getCitizens() != null
+                && !plugin.getSettings().canAllowCommandsForNpcQuests()
+                && quest.getNpcStart() != null && quest.getNpcStart().getEntity() != null
+                && quest.getNpcStart().getEntity().getLocation().getWorld() != null
+                && getPlayer().getLocation().getWorld() != null
+                && quest.getNpcStart().getEntity().getLocation().getWorld().getName().equals(
+                getPlayer().getLocation().getWorld().getName())
+                && quest.getNpcStart().getEntity().getLocation().distance(getPlayer().getLocation()) > 6.0) {
+            if (giveReason) {
+                final String msg = Lang.get(getPlayer(), "mustSpeakTo").replace("<npc>", ChatColor.DARK_PURPLE
+                        + quest.getNpcStart().getName() + ChatColor.YELLOW);
+                sendMessage(ChatColor.YELLOW + msg);
+            }
+            return false;
+        } else if (quest.getBlockStart() != null) {
+            if (giveReason) {
+                final String msg = Lang.get(getPlayer(), "noCommandStart").replace("<quest>", ChatColor.DARK_PURPLE
+                        + quest.getName() + ChatColor.YELLOW);
+                sendMessage(ChatColor.YELLOW + msg);
+            }
+            return false;
+        } else if (getCompletedQuests().contains(quest) && getRemainingCooldown(quest) > 0
+                && !quest.getPlanner().getOverride()) {
+            if (giveReason) {
+                final String msg = Lang.get(getPlayer(), "questTooEarly").replace("<quest>", ChatColor.AQUA
+                        + quest.getName()+ ChatColor.YELLOW).replace("<time>", ChatColor.DARK_PURPLE
+                        + MiscUtil.getTime(getRemainingCooldown(quest)) + ChatColor.YELLOW);
+                getPlayer().sendMessage(ChatColor.YELLOW + msg);
+            }
+            return false;
+        } else if (quest.getRegionStart() != null) {
+            if (!quest.isInRegionStart(this)) {
+                if (giveReason) {
+                    final String msg = Lang.get(getPlayer(), "questInvalidLocation").replace("<quest>", ChatColor.AQUA
+                            + quest.getName() + ChatColor.YELLOW);
+                    getPlayer().sendMessage(ChatColor.YELLOW + msg);
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Start a quest for this Quester
      * 
@@ -685,7 +814,52 @@ public class Quester implements IQuester {
             plugin.getServer().getPluginManager().callEvent(postEvent);
         }
     }
-    
+
+    /**
+     * End a quest for this Quester, but ask permission first if possible<p>
+     *
+     * @param quest The quest to check and then offer
+     * @param message Messages to send Quester upon quit, can be left null or empty
+     * @return true if successful
+     */
+    public boolean abandonQuest(final IQuest quest, final String message) {
+        return abandonQuest(quest, new String[] {message});
+    }
+
+    /**
+     * End a quest for this Quester, but ask permission first if possible<p>
+     *
+     * @param quest The quest to check and then offer
+     * @param messages Messages to send Quester upon quit, can be left null or empty
+     * @return true if successful
+     */
+    public boolean abandonQuest(final IQuest quest, final String[] messages) {
+        if (quest == null) {
+            return false;
+        }
+        final QuestQuitEvent event = new QuestQuitEvent(quest, this);
+        plugin.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+        final ISettings settings = plugin.getSettings();
+        if (getPlayer() != null) {
+            setQuestIdToQuit(quest.getId());
+            if (settings.canConfirmAbandon()) {
+                final ConversationFactory cf = new ConversationFactory(plugin).withModality(false)
+                        .withPrefix(context -> ChatColor.GRAY.toString())
+                        .withFirstPrompt(new QuestAbandonPrompt()).withTimeout(settings.getAcceptTimeout())
+                        .thatExcludesNonPlayersWithMessage("Console may not perform this conversation!")
+                        .addConversationAbandonedListener(plugin.getConvoListener());
+                cf.buildConversation(getPlayer()).begin();
+            } else {
+                quitQuest(quest, messages);
+            }
+            return true;
+        }
+        return false;
+    }
+
     /**
      * End a quest for this Quester
      * 
@@ -3448,7 +3622,7 @@ public class Quester implements IQuester {
         }
         return currentTime - lastTime;
     }
-
+    
     /**
      * Get the amount of time left before Quester may take a completed quest again
      * 
@@ -4026,7 +4200,7 @@ public class Quester implements IQuester {
         }
         return playerAmount >= is.getAmount();
     }
-
+    
     /**
      * Dispatch player event to fellow questers<p>
      *
@@ -4191,136 +4365,6 @@ public class Quester implements IQuester {
             }
         }
         return mq;
-    }
-    
-    /**
-     * Check if quest is available and, if so, ask Quester if they would like to start it<p>
-     * 
-     * @param quest The quest to check and then offer
-     * @param giveReason Whether to inform Quester of unavailability
-     * @return true if successful
-     */
-    public boolean offerQuest(final IQuest quest, final boolean giveReason) {
-        if (quest == null) {
-            return false;
-        }
-        final QuestTakeEvent event = new QuestTakeEvent(quest, this);
-        plugin.getServer().getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-        if (canAcceptOffer(quest, giveReason)) {
-            if (getPlayer() != null) {
-                if (!getPlayer().isConversing()) {
-                    setQuestIdToTake(quest.getId());
-                    final String s = ChatColor.GOLD + Lang.get("questObjectivesTitle")
-                            .replace("<quest>", quest.getName()) + "\n" + ChatColor.RESET + quest.getDescription();
-                    for (final String msg : s.split("<br>")) {
-                        sendMessage(msg);
-                    }
-                    if (!plugin.getSettings().canAskConfirmation()) {
-                        takeQuest(quest, false);
-                    } else {
-                        plugin.getConversationFactory().buildConversation(getPlayer()).begin();
-                    }
-                    return true;
-                } else {
-                    sendMessage(ChatColor.YELLOW + Lang.get(getPlayer(), "alreadyConversing"));
-                }
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Check if quest is available to this Quester<p>
-     * 
-     * @param quest The quest to check
-     * @param giveReason Whether to inform Quester of unavailability
-     * @return true if available
-     */
-    public boolean canAcceptOffer(final IQuest quest, final boolean giveReason) {
-        if (quest == null) {
-            return false;
-        }
-        if (getCurrentQuests().size() >= plugin.getSettings().getMaxQuests() && plugin.getSettings().getMaxQuests() 
-                > 0) {
-            if (giveReason) {
-                StringJoiner joiner = new StringJoiner(", ");
-                getCurrentQuests().keySet().forEach(q -> joiner.add(q.getName()));
-                final String msg = Lang.get(getPlayer(), "questMaxAllowed")
-                        .replace("<current>", joiner.toString())
-                        .replace("<number>", String.valueOf(plugin.getSettings().getMaxQuests()));
-                sendMessage(ChatColor.YELLOW + msg);
-            }
-            return false;
-        } else if (getCurrentQuests().containsKey(quest)) {
-            if (giveReason) {
-                final String msg = Lang.get(getPlayer(), "questAlreadyOn");
-                sendMessage(ChatColor.YELLOW + msg);
-            }
-            return false;
-        } else if (getCompletedQuests().contains(quest) && quest.getPlanner().getCooldown() < 0) {
-            if (giveReason) {
-                final String msg = Lang.get(getPlayer(), "questAlreadyCompleted")
-                        .replace("<quest>", ChatColor.DARK_PURPLE + quest.getName() + ChatColor.YELLOW);
-                sendMessage(ChatColor.YELLOW + msg);
-            }
-            return false;
-        } else if (plugin.getDependencies().getCitizens() != null
-                && !plugin.getSettings().canAllowCommandsForNpcQuests()
-                && quest.getNpcStart() != null && quest.getNpcStart().getEntity() != null
-                && quest.getNpcStart().getEntity().getLocation().getWorld() != null
-                && getPlayer().getLocation().getWorld() != null
-                && quest.getNpcStart().getEntity().getLocation().getWorld().getName().equals(
-                getPlayer().getLocation().getWorld().getName())
-                && quest.getNpcStart().getEntity().getLocation().distance(getPlayer().getLocation()) > 6.0) {
-            if (giveReason) {
-                final String msg = Lang.get(getPlayer(), "mustSpeakTo").replace("<npc>", ChatColor.DARK_PURPLE 
-                        + quest.getNpcStart().getName() + ChatColor.YELLOW);
-                sendMessage(ChatColor.YELLOW + msg);
-            }
-            return false;
-        } else if (quest.getBlockStart() != null) {
-            if (giveReason) {
-                final String msg = Lang.get(getPlayer(), "noCommandStart").replace("<quest>", ChatColor.DARK_PURPLE 
-                        + quest.getName() + ChatColor.YELLOW);
-                sendMessage(ChatColor.YELLOW + msg);
-            }
-            return false;
-        } else if (getCompletedQuests().contains(quest) && getRemainingCooldown(quest) > 0
-                && !isResetCooldown(quest) && !quest.getPlanner().getOverride()) {
-            if (giveReason) {
-                final String msg = Lang.get(getPlayer(), "questTooEarly").replace("<quest>", ChatColor.AQUA 
-                        + quest.getName()+ ChatColor.YELLOW).replace("<time>", ChatColor.DARK_PURPLE 
-                        + MiscUtil.getTime(getRemainingCooldown(quest)) + ChatColor.YELLOW);
-                getPlayer().sendMessage(ChatColor.YELLOW + msg);
-            }
-            return false;
-        } else if (quest.getRegionStart() != null) {
-            if (!quest.isInRegionStart(this)) {
-                if (giveReason) {
-                    final String msg = Lang.get(getPlayer(), "questInvalidLocation").replace("<quest>", ChatColor.AQUA 
-                            + quest.getName() + ChatColor.YELLOW);
-                    getPlayer().sendMessage(ChatColor.YELLOW + msg);
-                }
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static final SimpleDateFormat format = new SimpleDateFormat("dd") {{
-
-        setTimeZone(TimeZone.getTimeZone(ZoneId.SHORT_IDS.get("VST")));
-
-    }};
-    public boolean isResetCooldown(IQuest quest) {
-        long completedTime = getCompletedTimes().get(quest);
-        if (quest.getPlanner().getCooldown() > 0) {
-            return Integer.parseInt(format.format(new Date())) > Integer.parseInt(format.format(new Date(completedTime)));
-        }
-        return true;
     }
 
     public boolean meetsCondition(final IQuest quest, final boolean giveReason) {

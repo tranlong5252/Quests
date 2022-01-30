@@ -17,7 +17,6 @@ import me.blackvein.quests.Quests;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsEditorEvent;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsJournalEvent;
 import me.blackvein.quests.events.command.QuestsCommandPreQuestsListEvent;
-import me.blackvein.quests.events.quest.QuestQuitEvent;
 import me.blackvein.quests.interfaces.ReloadCallback;
 import me.blackvein.quests.item.QuestJournal;
 import me.blackvein.quests.player.IQuester;
@@ -690,20 +689,28 @@ public class CmdExecutor implements CommandExecutor {
         }
     }
 
+    private void questsQuit(final Player player, final String[] args) {
+        if (player.hasPermission("quests.quit")) {
+            if (args.length == 1) {
+                Lang.send(player, ChatColor.RED + Lang.get(player, "COMMAND_QUIT_HELP"));
+                return;
+            }
+            questQuit(player, concatArgArray(args, 1, args.length - 1, ' '));
+        } else {
+            Lang.send(player, ChatColor.RED + Lang.get(player, "noPermission"));
+        }
+    }
+
     private void questQuit(final Player player, final String name) {
         final IQuester quester = plugin.getQuester(player.getUniqueId());
-        if (quester.getCurrentQuests().isEmpty() == false) {
+        if (!quester.getCurrentQuests().isEmpty()) {
             final IQuest quest = plugin.getQuest(name);
             if (quest != null) {
                 if (quest.getOptions().canAllowQuitting()) {
-                    final QuestQuitEvent event = new QuestQuitEvent(quest, quester);
-                    plugin.getServer().getPluginManager().callEvent(event);
-                    if (event.isCancelled()) {
-                        return;
-                    }
-                    String msg = Lang.get("questQuit");
-                    msg = msg.replace("<quest>", ChatColor.DARK_PURPLE + quest.getName() + ChatColor.YELLOW);
+                    final String msg = ChatColor.YELLOW + Lang.get("questQuit").replace("<quest>",
+                            ChatColor.DARK_PURPLE + quest.getName() + ChatColor.YELLOW);
                     quester.quitQuest(quest, msg);
+                    quester.abandonQuest(quest, msg);
                 } else {
                     Lang.send(player, ChatColor.YELLOW + Lang.get(player, "questQuitDisabled"));
                 }
@@ -712,19 +719,6 @@ public class CmdExecutor implements CommandExecutor {
             }
         } else {
             Lang.send(player, ChatColor.YELLOW + Lang.get(player, "noActiveQuest"));
-        }
-    }
-
-    private void questsQuit(final Player player, final String[] args) {
-        if (player.hasPermission("quests.quit")) {
-            if (args.length == 1) {
-                Lang.send(player, ChatColor.RED + Lang.get(player, "COMMAND_QUIT_HELP"));
-                return;
-            }
-            final IQuester quester = plugin.getQuester(player.getUniqueId());
-            questQuit(player, concatArgArray(args, 1, args.length - 1, ' '));
-        } else {
-            Lang.send(player, ChatColor.RED + Lang.get(player, "noPermission"));
         }
     }
 
@@ -738,7 +732,7 @@ public class CmdExecutor implements CommandExecutor {
                     final IQuest questToFind = plugin.getQuest(id);
                     final IQuester quester = plugin.getQuester(player.getUniqueId());
                     if (plugin.getSettings().getBlockQuests().contains(id)) {
-                        player.sendMessage(ChatColor.YELLOW + Lang.get(player, "questTakeDisabled"));
+                        Lang.send(player, ChatColor.YELLOW + Lang.get(player, "questTakeDisabled"));
                         return;
                     }
                     if (questToFind != null) {
