@@ -709,7 +709,6 @@ public class CmdExecutor implements CommandExecutor {
                 if (quest.getOptions().canAllowQuitting()) {
                     final String msg = ChatColor.YELLOW + Lang.get("questQuit").replace("<quest>",
                             ChatColor.DARK_PURPLE + quest.getName() + ChatColor.YELLOW);
-                    quester.quitQuest(quest, msg);
                     quester.abandonQuest(quest, msg);
                 } else {
                     Lang.send(player, ChatColor.YELLOW + Lang.get(player, "questQuitDisabled"));
