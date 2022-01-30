@@ -72,7 +72,7 @@ public class Quester implements IQuester {
     private long lastNotifiedCondition = 0L;
     protected ConcurrentHashMap<IQuest, BukkitTask> questTitleTasks = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<Integer, IQuest> timers = new ConcurrentHashMap<>();
-    protected ConcurrentHashMap<IQuest, Integer> currentQuests = new ConcurrentHashMap<IQuest, Integer>() {
+    public ConcurrentHashMap<IQuest, Integer> currentQuests = new ConcurrentHashMap<IQuest, Integer>() {
 
         private static final long serialVersionUID = 6361484975823846780L;
 
@@ -3765,7 +3765,7 @@ public class Quester implements IQuester {
                         start = true;
                 } else start = true;
                 if (start)
-                    TitleRepeater.startTask(plugin, getPlayer(), q.getTitle());
+                    TitleRepeater.startTask(plugin, getPlayer(), q, this);
             }
         } else {
             if (questTitleTasks.containsKey(q)) {
