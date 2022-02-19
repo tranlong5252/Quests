@@ -17,19 +17,33 @@ import com.denizenscript.denizen.objects.PlayerTag;
 import com.denizenscript.denizen.utilities.implementation.BukkitScriptEntryData;
 import com.denizenscript.denizencore.scripts.ScriptRegistry;
 import com.denizenscript.denizencore.scripts.containers.core.TaskScriptContainer;
-import com.denizenscript.denizencore.scripts.queues.ScriptQueue;
 import com.denizenscript.denizencore.scripts.queues.core.InstantQueue;
+import me.blackvein.quests.QuestsAPI;
 import net.citizensnpcs.api.npc.NPC;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class DenizenAPI_1_1_1 {
-    
+
+    private static final QuestsAPI quests = (QuestsAPI) Bukkit.getPluginManager().getPlugin("Quests");
+    private static final DenizenAPI api = quests != null ? quests.getDependencies().getDenizenApi() : null;
+
     public static boolean containsScript(final String input) {
-        return ScriptRegistry.containsScript(input);
+        if (quests == null || api.scriptRegistry == null || api.containsScriptMethod == null) return false;
+        boolean script = false;
+        try {
+            script = (boolean)api.containsScriptMethod.invoke(api.scriptRegistry, input);
+        } catch (final Exception e) {
+            quests.getLogger().log(Level.WARNING, "Error invoking Denizen ScriptRegistry#containsScript", e);
+        }
+        return script;
     }
     
     @Nullable
@@ -52,14 +66,23 @@ public class DenizenAPI_1_1_1 {
     }
     
     public static @NotNull Object mirrorCitizensNPC(final NPC npc) {
-        return NPCTag.mirrorCitizensNPC(npc);
+        return NPCTag.fromEntity(npc.getEntity());
     }
-    
+
     public static void runTaskScript(final String scriptName, final Player player) {
         final TaskScriptContainer taskScript = ScriptRegistry.getScriptContainerAs(scriptName, TaskScriptContainer.class);
         final BukkitScriptEntryData entryData = new BukkitScriptEntryData(PlayerTag.mirrorBukkitPlayer(player), null);
-        final ScriptQueue queue = new InstantQueue(taskScript.getName())
-                .addEntries(taskScript.getBaseEntries(entryData.clone()));
-        queue.start();
+        final InstantQueue queue = new InstantQueue(taskScript.getName());
+
+        if (quests == null) {
+            return;
+        }
+        try {
+            final Method addEntries = queue.getClass().getMethod("addEntries", List.class);
+            addEntries.invoke(queue, taskScript.getBaseEntries(entryData.clone()));
+            queue.start();
+        } catch (final Exception e) {
+            quests.getLogger().log(Level.WARNING, "Error invoking Denizen InstantQueue#addEntries", e);
+        }
     }
 }

@@ -68,7 +68,7 @@ public class BlockListener implements Listener {
                     if (!quester.meetsCondition(quest, true)) {
                         continue;
                     }
-                    if (quester.getCurrentQuests().containsKey(quest)) {
+                    if (quester.getCurrentQuestsTemp().containsKey(quest)) {
                         final IStage currentStage = quester.getCurrentStage(quest);
                         if (currentStage == null) {
                             plugin.getLogger().severe("Player " + player.getName() + " (" + player.getUniqueId()
@@ -186,7 +186,7 @@ public class BlockListener implements Listener {
                     continue;
                 }
                 
-                if (quester.getCurrentQuests().containsKey(quest) 
+                if (quester.getCurrentQuestsTemp().containsKey(quest)
                         && quester.getCurrentStage(quest).containsObjective(type)) {
                     quester.damageBlock(quest, blockItemStack);
                 }
@@ -194,7 +194,7 @@ public class BlockListener implements Listener {
                 dispatchedQuestIDs.addAll(quester.dispatchMultiplayerEverything(quest, type, 
                         (final IQuester q, final IQuest cq) -> {
                     if (!dispatchedQuestIDs.contains(cq.getId())) {
-                        q.placeBlock(cq, blockItemStack);
+                        q.damageBlock(cq, blockItemStack);
                     }
                     return null;
                 }));
@@ -218,7 +218,7 @@ public class BlockListener implements Listener {
                         continue;
                     }
                     
-                    if (quester.getCurrentQuests().containsKey(quest) 
+                    if (quester.getCurrentQuestsTemp().containsKey(quest)
                             && quester.getCurrentStage(quest).containsObjective(type)) {
                         quester.placeBlock(quest, blockItemStack);
                     }
@@ -262,7 +262,7 @@ public class BlockListener implements Listener {
                                 continue;
                             }
                             
-                            if (quester.getCurrentQuests().containsKey(quest) 
+                            if (quester.getCurrentQuestsTemp().containsKey(quest)
                                     && quester.getCurrentStage(quest).containsObjective(type)) {
                                 quester.useBlock(quest, blockItemStack);
                             }

@@ -37,17 +37,36 @@ import me.blackvein.quests.exceptions.ConditionFormatException;
 import me.blackvein.quests.exceptions.QuestFormatException;
 import me.blackvein.quests.exceptions.StageFormatException;
 import me.blackvein.quests.interfaces.ReloadCallback;
-import me.blackvein.quests.listeners.*;
+import me.blackvein.quests.listeners.BlockListener;
+import me.blackvein.quests.listeners.CommandManager;
+import me.blackvein.quests.listeners.ConvoListener;
+import me.blackvein.quests.listeners.ItemListener;
+import me.blackvein.quests.listeners.NpcListener;
+import me.blackvein.quests.listeners.PartiesListener;
+import me.blackvein.quests.listeners.PlayerListener;
+import me.blackvein.quests.listeners.UniteListener;
 import me.blackvein.quests.logging.QuestsLog4JFilter;
 import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.player.IQuester;
-import me.blackvein.quests.quests.*;
+import me.blackvein.quests.quests.BukkitQuestFactory;
+import me.blackvein.quests.quests.IQuest;
+import me.blackvein.quests.quests.IStage;
+import me.blackvein.quests.quests.Options;
+import me.blackvein.quests.quests.Planner;
+import me.blackvein.quests.quests.QuestFactory;
+import me.blackvein.quests.quests.Requirements;
+import me.blackvein.quests.quests.Rewards;
 import me.blackvein.quests.statistics.Metrics;
 import me.blackvein.quests.storage.Storage;
 import me.blackvein.quests.storage.StorageFactory;
 import me.blackvein.quests.tasks.NpcEffectThread;
 import me.blackvein.quests.tasks.PlayerMoveThread;
-import me.blackvein.quests.util.*;
+import me.blackvein.quests.util.ConfigUtil;
+import me.blackvein.quests.util.ItemUtil;
+import me.blackvein.quests.util.Lang;
+import me.blackvein.quests.util.MiscUtil;
+import me.blackvein.quests.util.RomanNumeral;
+import me.blackvein.quests.util.UpdateChecker;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.pikamug.localelib.LocaleManager;
 import net.citizensnpcs.api.CitizensAPI;
@@ -55,7 +74,14 @@ import net.citizensnpcs.api.npc.NPC;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.logging.log4j.LogManager;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.DyeColor;
+import org.bukkit.Effect;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -72,7 +98,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -80,14 +105,31 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
@@ -171,7 +213,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
 
         // 4 - Load command executor
-        cmdExecutor = new CmdExecutor(this);
+        cmdExecutor = new CommandManager(this);
         
         // 5 - Load soft-depends
         depends.init();
@@ -652,13 +694,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 }
                 final String questIdToTake = quester.getQuestIdToTake();
                 try {
-                    if (getQuestById(questIdToTake) == null) {
+                    if (getQuestByIdTemp(questIdToTake) == null) {
                         getLogger().info(player.getName() + " attempted to take quest ID \"" + questIdToTake 
                                 + "\" but something went wrong");
                         player.sendMessage(ChatColor.RED 
                                 + "Something went wrong! Please report issue to an administrator.");
                     } else {
-                        getQuester(player.getUniqueId()).takeQuest(getQuestById(questIdToTake), false);
+                        getQuester(player.getUniqueId()).takeQuest(getQuestByIdTemp(questIdToTake), false);
                     }
                 } catch (final Exception e) {
                     e.printStackTrace();
@@ -893,7 +935,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                     for (final String questKey : questsSection.getKeys(false)) {
                         try {
                             if (config.contains("quests." + questKey)) {
-                                loadCustomSections(getQuestById(questKey), config, questKey);
+                                loadCustomSections(getQuestByIdTemp(questKey), config, questKey);
                             } else {
                                 throw new QuestFormatException("Unable to load custom sections", questKey);
                             }
@@ -1555,7 +1597,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         if (getSettings().canIgnoreLockedQuests()) {
             final LinkedList<IQuest> available = new LinkedList<>();
             for (final IQuest q : quests) {
-                if (!quester.getCompletedQuests().contains(q)) {
+                if (!quester.getCompletedQuestsTemp().contains(q)) {
                     if (q.testRequirements(player)) {
                         available.add(q);
                     }
@@ -1648,7 +1690,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                         for (final IQuester quester : questers) {
                             final CompletableFuture<IQuester> cf = getStorage().loadQuester(quester.getUUID());
                             final IQuester loaded = cf.get();
-                            for (final IQuest q : loaded.getCurrentQuests().keySet()) {
+                            for (final IQuest q : loaded.getCurrentQuestsTemp().keySet()) {
                                 loaded.checkQuest(q);
                             }
                         }
@@ -2142,10 +2184,10 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                         final String node2 = config.getString("quests." + id + ".name");
                         if (node2 != null && (id.equals(node) || node2.equalsIgnoreCase(node)
                                 || ChatColor.stripColor(node2).equalsIgnoreCase(ChatColor.stripColor(node)))) {
-                            if (getQuest(node) != null) {
-                                temp.add(getQuest(node));
-                            } else if (getQuestById(node) != null) {
-                                temp.add(getQuestById(node));
+                            if (getQuestTemp(node) != null) {
+                                temp.add(getQuestTemp(node));
+                            } else if (getQuestByIdTemp(node) != null) {
+                                temp.add(getQuestByIdTemp(node));
                             } else {
                                 throw new QuestFormatException("Requirement quest-blocks has unknown quest name/id "
                                         + node + ", place it earlier in file so it loads first", questKey);
@@ -2181,10 +2223,10 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                         final String node2 = config.getString("quests." + id + ".name");
                         if (node2 != null && (id.equals(node) || node2.equalsIgnoreCase(node)
                                 || ChatColor.stripColor(node2).equalsIgnoreCase(ChatColor.stripColor(node)))) {
-                            if (getQuest(node) != null) {
-                                temp.add(getQuest(node));
-                            } else if (getQuestById(node) != null) {
-                                temp.add(getQuestById(node));
+                            if (getQuestTemp(node) != null) {
+                                temp.add(getQuestTemp(node));
+                            } else if (getQuestByIdTemp(node) != null) {
+                                temp.add(getQuestByIdTemp(node));
                             } else {
                                 throw new QuestFormatException("Requirement quests has unknown quest name " 
                                         + node + ", place it earlier in file so it loads first", questKey);
@@ -3924,16 +3966,18 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     
     private void loadCustomSections(final IQuest quest, final FileConfiguration config, final String questKey)
             throws StageFormatException, QuestFormatException {
-        final ConfigurationSection questStages = config.getConfigurationSection("quests." + questKey + ".stages.ordered");
+        final ConfigurationSection questStages = config.getConfigurationSection("quests." + questKey
+                + ".stages.ordered");
         if (questStages != null) {
             for (final String stageNum : questStages.getKeys(false)) {
                 if (quest == null) {
-                    getLogger().warning("Unable to load custom objectives because quest for " + questKey + " was null");
+                    getLogger().warning("Unable to consider custom objectives because quest for " + questKey
+                            + " was null");
                     return;
                 }
                 if (quest.getStage(Integer.parseInt(stageNum) - 1) == null) {
-                    getLogger().severe("Unable to load custom objectives because stage" + (Integer.parseInt(stageNum) - 1)
-                            + " for " + quest.getName() + " was null");
+                    getLogger().severe("Unable to load custom objectives because stage" + (Integer.parseInt(stageNum)
+                            - 1) + " for " + quest.getName() + " was null");
                     return;
                 }
                 final IStage oStage = quest.getStage(Integer.parseInt(stageNum) - 1);
@@ -3942,8 +3986,8 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 oStage.clearCustomObjectiveData();
                 oStage.clearCustomObjectiveDisplays();
                 if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".custom-objectives")) {
-                    final ConfigurationSection sec = config.getConfigurationSection("quests." + questKey + ".stages.ordered."
-                            + stageNum + ".custom-objectives");
+                    final ConfigurationSection sec = config.getConfigurationSection("quests." + questKey
+                            + ".stages.ordered." + stageNum + ".custom-objectives");
                     if (sec != null) {
                         for (final String path : sec.getKeys(false)) {
                             final String name = sec.getString(path + ".name");
@@ -4173,47 +4217,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     }
 
     /**
-     * @deprecated Use InventoryUtil.removeItem(Inventory, ItemStack)
-     */
-    @Deprecated
-    public static boolean removeItem(final Inventory inventory, final ItemStack is) {
-        final int amount = is.getAmount();
-        final HashMap<Integer, ? extends ItemStack> allItems = inventory.all(is.getType());
-        final HashMap<Integer, Integer> removeFrom = new HashMap<>();
-        int foundAmount = 0;
-        for (final Map.Entry<Integer, ? extends ItemStack> item : allItems.entrySet()) {
-            if (ItemUtil.compareItems(is, item.getValue(), true) == 0) {
-                if (item.getValue().getAmount() >= amount - foundAmount) {
-                    removeFrom.put(item.getKey(), amount - foundAmount);
-                    foundAmount = amount;
-                } else {
-                    foundAmount += item.getValue().getAmount();
-                    removeFrom.put(item.getKey(), item.getValue().getAmount());
-                }
-                if (foundAmount >= amount) {
-                    break;
-                }
-            }
-        }
-        if (foundAmount == amount) {
-            for (final Map.Entry<Integer, Integer> toRemove : removeFrom.entrySet()) {
-                final ItemStack item = inventory.getItem(toRemove.getKey());
-                if (item == null) {
-                    continue;
-                }
-                if (item.getAmount() - toRemove.getValue() <= 0) {
-                    inventory.clear(toRemove.getKey());
-                } else {
-                    item.setAmount(item.getAmount() - toRemove.getValue());
-                    inventory.setItem(toRemove.getKey(), item);
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Checks if player can use Quests
      * 
      * @param uuid the entity UUID to be checked
@@ -4247,15 +4250,36 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
         return player.hasPermission("quests.mode.trial");
     }
-    
+
     /**
      * Get a Quest by ID
-     * 
+     *
      * @param id ID of the quest
      * @return Exact match or null if not found
      * @since 3.8.6
      */
-    public IQuest getQuestById(final String id) {
+    public Quest getQuestById(final String id) {
+        if (id == null) {
+            return null;
+        }
+        for (final IQuest iq : quests) {
+            final Quest q = (Quest) iq;
+            if (q.getId().equals(id)) {
+                return q;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get a Quest by ID
+     *
+     * @param id ID of the quest
+     * @return Exact match or null if not found
+     * @since 3.8.6
+     * @deprecated Do not use
+     */
+    public IQuest getQuestByIdTemp(final String id) {
         if (id == null) {
             return null;
         }
@@ -4266,14 +4290,45 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
         return null;  
     }
-    
+
+    /**
+     * Get a Quest by name
+     *
+     * @param name Name of the quest
+     * @return Closest match or null if not found
+     */
+    public Quest getQuest(final String name) {
+        if (name == null) {
+            return null;
+        }
+        for (final IQuest iq : quests) {
+            final Quest q = (Quest) iq;
+            if (q.getName().equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&', name))) {
+                return q;
+            }
+        }
+        for (final IQuest iq : quests) {
+            final Quest q = (Quest) iq;
+            if (q.getName().toLowerCase().startsWith(ChatColor.translateAlternateColorCodes('&', name).toLowerCase())) {
+                return q;
+            }
+        }
+        for (final IQuest iq : quests) {
+            final Quest q = (Quest) iq;
+            if (q.getName().toLowerCase().contains(ChatColor.translateAlternateColorCodes('&', name).toLowerCase())) {
+                return q;
+            }
+        }
+        return null;
+    }
+
     /**
      * Get a Quest by name
      * 
      * @param name Name of the quest
      * @return Closest match or null if not found
      */
-    public IQuest getQuest(final String name) {
+    public IQuest getQuestTemp(final String name) {
         if (name == null) {
             return null;
         }
@@ -4360,7 +4415,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
      */
     public boolean hasQuest(final NPC npc, final IQuester quester) {
         for (final IQuest q : quests) {
-            if (q.getNpcStart() != null && !quester.getCompletedQuests().contains(q)) {
+            if (q.getNpcStart() != null && !quester.getCompletedQuestsTemp().contains(q)) {
                 if (q.getNpcStart().getId() == npc.getId()) {
                     final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
                     if (!ignoreLockedQuests || q.testRequirements(quester)) {
@@ -4382,7 +4437,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
      */
     public boolean hasCompletedQuest(final NPC npc, final IQuester quester) {
         for (final IQuest q : quests) {
-            if (q.getNpcStart() != null && quester.getCompletedQuests().contains(q)) {
+            if (q.getNpcStart() != null && quester.getCompletedQuestsTemp().contains(q)) {
                 if (q.getNpcStart().getId() == npc.getId()) {
                     final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
                     if (!ignoreLockedQuests || q.testRequirements(quester)) {
@@ -4403,7 +4458,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
      */
     public boolean hasCompletedRedoableQuest(final NPC npc, final IQuester quester) {
         for (final IQuest q : quests) {
-            if (q.getNpcStart() != null && quester.getCompletedQuests().contains(q)
+            if (q.getNpcStart() != null && quester.getCompletedQuestsTemp().contains(q)
                     && q.getPlanner().getCooldown() > -1) {
                 if (q.getNpcStart().getId() == npc.getId()) {
                     final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();

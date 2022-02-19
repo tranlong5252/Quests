@@ -299,7 +299,7 @@ public class BukkitActionFactory implements ActionFactory, ConversationAbandoned
             plugin.getLogger().info(identifier + " deleted action " + action);
         }
         for (final IQuester q : plugin.getOfflineQuesters()) {
-            for (final IQuest quest : q.getCurrentQuests().keySet()) {
+            for (final IQuest quest : q.getCurrentQuestsTemp().keySet()) {
                 q.checkQuest(quest);
             }
         }
@@ -456,7 +456,7 @@ public class BukkitActionFactory implements ActionFactory, ConversationAbandoned
             plugin.getLogger().info(identifier + " saved action " + context.getSessionData(CK.E_NAME));
         }
         for (final IQuester q : plugin.getOfflineQuesters()) {
-            for (final IQuest quest : q.getCurrentQuests().keySet()) {
+            for (final IQuest quest : q.getCurrentQuestsTemp().keySet()) {
                 q.checkQuest(quest);
             }
         }

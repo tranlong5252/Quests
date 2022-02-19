@@ -248,13 +248,13 @@ public class Quest implements IQuest {
             if (currentStage.getFinishAction() != null) {
                 currentStage.getFinishAction().fire(quester, this);
             }
-            if (quester.getCurrentQuests().get(this) == (orderedStages.size() - 1)) {
+            if (quester.getCurrentQuestsTemp().get(this) == (orderedStages.size() - 1)) {
                 if (currentStage.getScript() != null) {
                     plugin.getDenizenTrigger().runDenizenScript(currentStage.getScript(), quester);
                 }
                 completeQuest(quester);
             } else {
-                setStage(quester, quester.getCurrentQuests().get(this) + 1);
+                setStage(quester, quester.getCurrentQuestsTemp().get(this) + 1);
             }
             if (quester.getQuestData(this) != null) {
                 quester.getQuestData(this).setDelayStartTime(0);
@@ -393,6 +393,7 @@ public class Quest implements IQuest {
             }
         }
         quester.updateJournal();
+        quester.saveData();
         if (player.isOnline()) {
             final QuesterPostChangeStageEvent postEvent
                     = new QuesterPostChangeStageEvent((Quester) quester, this, currentStage, nextStage);
@@ -401,13 +402,13 @@ public class Quest implements IQuest {
     }
 
     /**
-     * Set location-objective target for compass.<p>
+     * Attempt to set location-objective target for compass.<p>
      * 
      * Method may be called as often as needed.
      * 
      * @param quester The online quester to have their compass updated
      * @param stage The stage to process for targets
-     * @return true if an attempt was made successfully
+     * @return true if quester is online and has permission
      */
     public boolean updateCompass(final IQuester quester, final IStage stage) {
         if (quester == null) {
@@ -532,6 +533,7 @@ public class Quest implements IQuest {
                     if (event.isCancelled()) {
                         return;
                     }
+                    quester.setCompassTarget(this);
                     quester.getPlayer().setCompassTarget(lockedTarget);
                 }
             }
@@ -569,11 +571,11 @@ public class Quest implements IQuest {
         if (quester.getQuestPoints() < requirements.getQuestPoints()) {
             return false;
         }
-        if (!quester.getCompletedQuests().containsAll(requirements.getNeededQuests())) {
+        if (!quester.getCompletedQuestsTemp().containsAll(requirements.getNeededQuests())) {
             return false;
         }
         for (final IQuest q : requirements.getBlockQuests()) {
-            if (quester.getCompletedQuests().contains(q) || quester.getCurrentQuests().containsKey(q)) {
+            if (quester.getCompletedQuestsTemp().contains(q) || quester.getCurrentQuestsTemp().containsKey(q)) {
                 return false;
             }
         }
@@ -678,7 +680,7 @@ public class Quest implements IQuest {
             return;
         }
         quester.hardQuit(this);
-        quester.getCompletedQuests().add(this);
+        quester.getCompletedQuestsTemp().add(this);
         for (final Map.Entry<Integer, IQuest> entry : quester.getTimers().entrySet()) {
             if (entry.getValue().getName().equals(getName())) {
                 plugin.getServer().getScheduler().cancelTask(entry.getKey());
