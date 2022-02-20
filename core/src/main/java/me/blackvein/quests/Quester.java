@@ -596,7 +596,7 @@ public class Quester implements IQuester {
                 sendMessage(ChatColor.YELLOW + msg);
             }
             return false;
-        } else if (getCompletedQuestsTemp().contains(quest) && getRemainingCooldown(quest) > 0 
+        } else if (getCompletedQuestsTemp().contains(quest) && getRemainingCooldown(quest) > 0
         && !isResetCooldown(quest) && !quest.getPlanner().getOverride()) {
             if (giveReason) {
                 final String msg = Lang.get(getPlayer(), "questTooEarly").replace("<quest>", ChatColor.AQUA
@@ -617,7 +617,7 @@ public class Quester implements IQuester {
         }
         return true;
     }
-    
+
     /**
      * Start a quest for this Quester
      * 
@@ -3671,7 +3671,7 @@ public class Quester implements IQuester {
         }
         return currentTime - lastTime;
     }
-    
+
     /**
      * Get the amount of time left before Quester may take a completed quest again
      * 
@@ -4264,7 +4264,7 @@ public class Quester implements IQuester {
         }
         return playerAmount >= is.getAmount();
     }
-    
+
     /**
      * Dispatch player event to fellow questers<p>
      *
@@ -4443,7 +4443,7 @@ public class Quester implements IQuester {
         }
         return true;
     }
-    
+
     public boolean meetsCondition(final IQuest quest, final boolean giveReason) {
         final IStage stage = getCurrentStage(quest);
         if (stage != null && stage.getCondition() != null && !stage.getCondition().check(this, quest)) {
@@ -4485,4 +4485,10 @@ public class Quester implements IQuester {
         return plugin.getDependencies().getWorldGuardApi().getApplicableRegionsIDs(getPlayer().getWorld(),
                 getPlayer().getLocation()).contains(regionID);
     }
+
+    private static final SimpleDateFormat format = new SimpleDateFormat("dd") {{
+
+        setTimeZone(TimeZone.getTimeZone(ZoneId.SHORT_IDS.get("VST")));
+
+    }};
 }
