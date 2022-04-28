@@ -12,9 +12,9 @@
 
 package me.blackvein.quests.tasks;
 
-import me.blackvein.quests.Quests;
-import me.blackvein.quests.particle.ParticleProvider;
 import me.blackvein.quests.player.IQuester;
+import me.blackvein.quests.Quests;
+import me.blackvein.quests.nms.ParticleProvider;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -33,9 +33,9 @@ public class NpcEffectThread implements Runnable {
     @Override
     public void run() {
         for (final Player player : plugin.getServer().getOnlinePlayers()) {
-            final IQuester quester = plugin.getQuester(player.getUniqueId());
             final List<Entity> nearby = player.getNearbyEntities(32.0, 32.0, 32.0);
             if (!nearby.isEmpty()) {
+                final IQuester quester = plugin.getQuester(player.getUniqueId());
                 for (final Entity e : nearby) {
                     if (plugin.getDependencies().getCitizens() != null 
                             && plugin.getDependencies().getCitizens().getNPCRegistry() != null) {

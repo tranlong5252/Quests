@@ -28,7 +28,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Sheep;
+import org.bukkit.entity.TNTPrimed;
+import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -41,13 +47,29 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -836,6 +858,51 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerLogin(final PlayerLoginEvent evt) {
+        final Player player = evt.getPlayer();
+        // Cannot check Quests#canUseQuests until PlayerJoinEvent
+        final IQuester noobCheck = new Quester(plugin, player.getUniqueId());
+        if (plugin.getSettings().canGenFilesOnJoin() && !noobCheck.hasData()) {
+            noobCheck.saveData();
+        }
+
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            final CompletableFuture<IQuester> cf = plugin.getStorage().loadQuester(player.getUniqueId());
+            try {
+                final IQuester quester = cf.get();
+                if (quester == null) {
+                    return;
+                }
+                for (final IQuest q : quester.getCompletedQuestsTemp()) {
+                    if (q != null) {
+                        if (!quester.getCompletedTimes().containsKey(q) && q.getPlanner().getCooldown() > -1) {
+                            quester.getCompletedTimes().put(q, System.currentTimeMillis());
+                        }
+                    }
+                }
+                for (final IQuest quest : quester.getCurrentQuestsTemp().keySet()) {
+                    quester.checkQuest(quest);
+                }
+                for (final IQuest quest : quester.getCurrentQuestsTemp().keySet()) {
+                    if (quester.getCurrentStage(quest).getDelay() > -1) {
+                        quester.startStageTimer(quest);
+                    }
+                }
+                plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                    if (quester.hasJournal()) {
+                        quester.updateJournal();
+                    }
+                    if (quester.canUseCompass()) {
+                        quester.findCompassTarget();
+                    }
+                }, 40L);
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @EventHandler
     public void onPlayerJoin(final PlayerJoinEvent evt) {
         final Player player = evt.getPlayer();
         if (player.hasPermission("quests.admin.update")) {
@@ -845,47 +912,6 @@ public class PlayerListener implements Listener {
                             + "] " + ChatColor.GREEN + Lang.get(player, "updateTo").replace("<version>",
                             version).replace("<url>", ChatColor.DARK_AQUA + "" + ChatColor.UNDERLINE
                             + plugin.getDescription().getWebsite()));
-                }
-            });
-        }
-        if (plugin.canUseQuests(player.getUniqueId())) {
-            final IQuester noobCheck = new Quester(plugin, player.getUniqueId());
-            if (plugin.getSettings().canGenFilesOnJoin() && !noobCheck.hasData()) {
-                noobCheck.saveData();
-            }
-            
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                final CompletableFuture<IQuester> cf = plugin.getStorage().loadQuester(player.getUniqueId());
-                try {
-                    final IQuester quester = cf.get();
-                    if (quester == null) {
-                        return;
-                    }
-                    for (final IQuest q : quester.getCompletedQuestsTemp()) {
-                        if (q != null) {
-                            if (!quester.getCompletedTimes().containsKey(q) && q.getPlanner().getCooldown() > -1) {
-                                quester.getCompletedTimes().put(q, System.currentTimeMillis());
-                            }
-                        }
-                    }
-                    for (final IQuest quest : quester.getCurrentQuestsTemp().keySet()) {
-                        quester.checkQuest(quest);
-                    }
-                    for (final IQuest quest : quester.getCurrentQuestsTemp().keySet()) {
-                        if (quester.getCurrentStage(quest).getDelay() > -1) {
-                            quester.startStageTimer(quest);
-                        }
-                    }
-                    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                        if (quester.hasJournal()) {
-                            quester.updateJournal();
-                        }
-                        if (quester.canUseCompass()) {
-                            quester.findCompassTarget();
-                        }
-                    }, 40L);
-                } catch (final Exception e) {
-                    e.printStackTrace();
                 }
             });
         }

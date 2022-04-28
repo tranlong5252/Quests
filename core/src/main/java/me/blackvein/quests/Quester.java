@@ -30,6 +30,7 @@ import me.blackvein.quests.events.quester.QuesterPreOpenGUIEvent;
 import me.blackvein.quests.events.quester.QuesterPreStartQuestEvent;
 import me.blackvein.quests.events.quester.QuesterPreUpdateObjectiveEvent;
 import me.blackvein.quests.item.QuestJournal;
+import me.blackvein.quests.nms.TitleProvider;
 import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.quests.BukkitObjective;
 import me.blackvein.quests.quests.IQuest;
@@ -759,8 +760,9 @@ public class Quester implements IQuester {
                         sendMessage(ChatColor.GREEN + accepted);
                         p.sendMessage("");
                         if (plugin.getSettings().canShowQuestTitles()) {
-                            p.sendTitle(ChatColor.GOLD + Lang.get(p, "quest") + " " + Lang.get(p, "accepted"),
-                                    ChatColor.YELLOW + quest.getName());
+                            final String title = ChatColor.GOLD + Lang.get(p, "quest") + " " + Lang.get(p, "accepted");
+                            final String subtitle = ChatColor.YELLOW + quest.getName();
+                            TitleProvider.sendTitle(p, title, subtitle);
                         }
                     }
                 }
@@ -942,6 +944,9 @@ public class Quester implements IQuester {
         }
         saveData();
         updateJournal();
+        if (compassTargetQuestId != null && compassTargetQuestId.equals(quest.getId())) {
+            compassTargetQuestId = null;
+        }
     }
     
     public LinkedList<String> getCurrentRequirements(final IQuest quest, final boolean ignoreOverrides) {
@@ -1521,7 +1526,7 @@ public class Quester implements IQuester {
             }
             final int toClear = stage.getCustomObjectiveCounts().get(customIndex);
             final ChatColor color = cleared < toClear ? ChatColor.GREEN : ChatColor.GRAY;
-            String message = color + "- " + co.getDisplay();
+            String message = color + co.getDisplay();
             for (final Entry<String,Object> prompt : co.getData()) {
                 final String replacement = "%" + prompt.getKey() + "%";
                 try {

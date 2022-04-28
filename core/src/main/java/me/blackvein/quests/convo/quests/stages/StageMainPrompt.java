@@ -430,8 +430,8 @@ public class StageMainPrompt extends QuestsEditorNumericPrompt {
     @Override
     public @NotNull String getBasicPromptText(final ConversationContext context) {
         final String input = (String) context.getSessionData(classPrefix + "-override");
-        if (input != null && !input.equalsIgnoreCase(Lang.get("cancel"))) {
-            if (input.equalsIgnoreCase(Lang.get("clear"))) {
+        if (input != null && !input.equalsIgnoreCase(Lang.get("cmdCancel"))) {
+            if (input.equalsIgnoreCase(Lang.get("cmdClear"))) {
                 context.setSessionData(stagePrefix + CK.S_OVERRIDE_DISPLAY, null);
             } else {
                 final LinkedList<String> overrides = new LinkedList<>();
@@ -1287,35 +1287,35 @@ public class StageMainPrompt extends QuestsEditorNumericPrompt {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
                     return ChatColor.YELLOW + "(" + ChatColor.AQUA + context.getSessionData(stagePrefix
-                            + CK.S_START_EVENT) + ChatColor.YELLOW + ")\n";
+                            + CK.S_START_EVENT) + ChatColor.YELLOW + ")";
                 }
             case 2:
                 if (context.getSessionData(stagePrefix + CK.S_FINISH_EVENT) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
                     return ChatColor.YELLOW + "(" + ChatColor.AQUA + context.getSessionData(stagePrefix
-                            + CK.S_FINISH_EVENT) + ChatColor.YELLOW + ")\n";
+                            + CK.S_FINISH_EVENT) + ChatColor.YELLOW + ")";
                 }
             case 3:
                 if (context.getSessionData(stagePrefix + CK.S_FAIL_EVENT) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
                     return ChatColor.YELLOW + "(" + ChatColor.AQUA + context.getSessionData(stagePrefix
-                            + CK.S_FAIL_EVENT) + ChatColor.YELLOW + ")\n";
+                            + CK.S_FAIL_EVENT) + ChatColor.YELLOW + ")";
                 }  
             case 4:
                 if (context.getSessionData(stagePrefix + CK.S_DEATH_EVENT) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
                     return ChatColor.YELLOW + "(" + ChatColor.AQUA + context.getSessionData(stagePrefix
-                            + CK.S_DEATH_EVENT) + ChatColor.YELLOW + ")\n";
+                            + CK.S_DEATH_EVENT) + ChatColor.YELLOW + ")";
                 }
             case 5:
                 if (context.getSessionData(stagePrefix + CK.S_DISCONNECT_EVENT) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
                     return ChatColor.YELLOW + "(" + ChatColor.AQUA + context.getSessionData(stagePrefix
-                            + CK.S_DISCONNECT_EVENT) + ChatColor.YELLOW + ")\n";
+                            + CK.S_DISCONNECT_EVENT) + ChatColor.YELLOW + ")";
                 }
             case 6:
                 if (context.getSessionData(stagePrefix + CK.S_CHAT_EVENTS) == null) {

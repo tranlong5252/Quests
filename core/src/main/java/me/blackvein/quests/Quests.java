@@ -38,6 +38,7 @@ import me.blackvein.quests.exceptions.QuestFormatException;
 import me.blackvein.quests.exceptions.StageFormatException;
 import me.blackvein.quests.interfaces.ReloadCallback;
 import me.blackvein.quests.listeners.BlockListener;
+import me.blackvein.quests.listeners.BungeeListener;
 import me.blackvein.quests.listeners.CommandManager;
 import me.blackvein.quests.listeners.ConvoListener;
 import me.blackvein.quests.listeners.ItemListener;
@@ -79,6 +80,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -131,6 +133,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Quests extends JavaPlugin implements QuestsAPI {
 
@@ -146,7 +149,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     private Collection<IAction> actions = new ConcurrentSkipListSet<>();
     private Collection<ICondition> conditions = new ConcurrentSkipListSet<>();
     private LinkedList<Integer> questNpcIds = new LinkedList<>();
-    private CommandExecutor cmdExecutor;
+    private TabExecutor cmdExecutor;
     private ConversationFactory conversationFactory;
     private ConversationFactory npcConversationFactory;
     private QuestFactory questFactory;
@@ -154,6 +157,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     private ConditionFactory conditionFactory;
     private ConvoListener convoListener;
     private BlockListener blockListener;
+    private BungeeListener bungeeListener;
     private ItemListener itemListener;
     private NpcListener npcListener;
     private PlayerListener playerListener;
@@ -182,6 +186,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
         convoListener = new ConvoListener();
         blockListener = new BlockListener(this);
+        bungeeListener = new BungeeListener(this);
         itemListener = new ItemListener(this);
         npcListener = new NpcListener(this);
         playerListener = new PlayerListener(this);
@@ -226,13 +231,16 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         
         // 8 - Setup commands
         if (getCommand("quests") != null) {
-            Objects.requireNonNull(getCommand("quests")).setExecutor(getCommandExecutor());
+            Objects.requireNonNull(getCommand("quests")).setExecutor(getTabExecutor());
+            Objects.requireNonNull(getCommand("quests")).setTabCompleter(getTabExecutor());
         }
         if (getCommand("questadmin") != null) {
-            Objects.requireNonNull(getCommand("questadmin")).setExecutor(getCommandExecutor());
+            Objects.requireNonNull(getCommand("questadmin")).setExecutor(getTabExecutor());
+            Objects.requireNonNull(getCommand("questadmin")).setTabCompleter(getTabExecutor());
         }
         if (getCommand("quest") != null) {
-            Objects.requireNonNull(getCommand("quest")).setExecutor(getCommandExecutor());
+            Objects.requireNonNull(getCommand("quest")).setExecutor(getTabExecutor());
+            Objects.requireNonNull(getCommand("quest")).setTabCompleter(getTabExecutor());
         }
         
         // 9 - Build conversation factories
@@ -259,6 +267,9 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         } else if (depends.getPartiesApi() != null) {
             getServer().getPluginManager().registerEvents(getPartiesListener(), this);
         }
+        if (hasBungeeEnabled()) {
+            getServer().getMessenger().registerIncomingPluginChannel(this, "quests:update", getBungeeListener());
+        }
 
         // 11 - Attempt to check for updates
         new UpdateChecker(this, 3711).getVersion(version -> {
@@ -268,7 +279,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
         });
 
-        // 12 - Delay loading of Quests, Actions and modules
+        // 12 - Delay loading of quests, actions and modules
         delayLoadQuestInfo();
     }
 
@@ -288,6 +299,18 @@ public class Quests extends JavaPlugin implements QuestsAPI {
 
     public boolean isLoading() {
         return loading;
+    }
+
+    public File getPluginDataFolder() {
+        return getDataFolder();
+    }
+
+    public Logger getPluginLogger() {
+        return getLogger();
+    }
+
+    public InputStream getPluginResource(String filename) {
+        return getResource(filename);
     }
 
     public String getDetectedServerSoftwareVersion() {
@@ -526,6 +549,10 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         return cmdExecutor;
     }
 
+    public TabExecutor getTabExecutor() {
+        return cmdExecutor;
+    }
+
     public ConversationFactory getConversationFactory() {
         return conversationFactory;
     }
@@ -552,6 +579,10 @@ public class Quests extends JavaPlugin implements QuestsAPI {
 
     public BlockListener getBlockListener() {
         return blockListener;
+    }
+
+    public BungeeListener getBungeeListener() {
+        return bungeeListener;
     }
 
     public ItemListener getItemListener() {
@@ -714,7 +745,12 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
         }
     }
-    
+
+    private boolean hasBungeeEnabled() {
+        final ConfigurationSection section = getServer().spigot().getConfig().getConfigurationSection("settings");
+        return section != null && section.getBoolean("bungeecord");
+    }
+
     /**
      * Transfer language files from jar to disk
      */
@@ -4314,6 +4350,14 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 return q;
             }
         }
+        for (final IQuest iq : quests) {
+            // For tab completion
+            final Quest q = (Quest) iq;
+            if (ChatColor.stripColor(q.getName()).equals(ChatColor.stripColor(ChatColor
+                    .translateAlternateColorCodes('&', name)))) {
+                return q;
+            }
+        }
         return null;
     }
 
@@ -4339,6 +4383,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
         for (final IQuest q : quests) {
             if (q.getName().toLowerCase().contains(ChatColor.translateAlternateColorCodes('&', name).toLowerCase())) {
+                return q;
+            }
+        }
+        for (final IQuest q : quests) {
+            // For tab completion
+            if (ChatColor.stripColor(q.getName()).equals(ChatColor.stripColor(ChatColor
+                    .translateAlternateColorCodes('&', name)))) {
                 return q;
             }
         }
@@ -4370,6 +4421,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 return a;
             }
         }
+        for (final IAction a : actions) {
+            // For tab completion
+            if (ChatColor.stripColor(a.getName()).equals(ChatColor.stripColor(ChatColor.
+                    translateAlternateColorCodes('&', name)))) {
+                return a;
+            }
+        }
         return null;
     }
     
@@ -4395,6 +4453,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
         for (final ICondition c : conditions) {
             if (c.getName().toLowerCase().contains(ChatColor.translateAlternateColorCodes('&', name).toLowerCase())) {
+                return c;
+            }
+        }
+        for (final ICondition c : conditions) {
+            // For tab completion
+            if (ChatColor.stripColor(c.getName()).equals(ChatColor.stripColor(ChatColor
+                    .translateAlternateColorCodes('&', name)))) {
                 return c;
             }
         }

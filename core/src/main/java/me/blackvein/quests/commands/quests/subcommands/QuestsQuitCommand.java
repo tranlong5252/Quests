@@ -21,6 +21,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class QuestsQuitCommand extends QuestsSubCommand {
 
     private final Quests plugin;
@@ -55,6 +59,11 @@ public class QuestsQuitCommand extends QuestsSubCommand {
     }
 
     @Override
+    public int getMaxArguments() {
+        return 2;
+    }
+
+    @Override
     public void execute(CommandSender cs, String[] args) {
         if (assertNonPlayer(cs)) {
             return;
@@ -85,5 +94,19 @@ public class QuestsQuitCommand extends QuestsSubCommand {
         } else {
             Lang.send(player, ChatColor.RED + Lang.get(player, "noPermission"));
         }
+    }
+
+    @Override
+    public List<String> tabComplete(CommandSender commandSender, String[] args) {
+        if (args.length == 2) {
+            final List<String> results = new ArrayList<>();
+            for (final IQuest quest : plugin.getLoadedQuests()) {
+                if (quest.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+                    results.add(ChatColor.stripColor(quest.getName()));
+                }
+            }
+            return results;
+        }
+        return Collections.emptyList();
     }
 }

@@ -19,6 +19,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +37,13 @@ public abstract class QuestsSubCommand {
 
     public abstract String getSyntax();
 
+    public abstract int getMaxArguments();
+
     public abstract void execute(CommandSender commandSender, String[] args);
+
+    public List<String> tabComplete(CommandSender commandSender, String[] args) {
+        return Collections.emptyList();
+    }
 
     public static boolean assertNonPlayer(CommandSender commandSender) {
         if (!(commandSender instanceof Player)) {

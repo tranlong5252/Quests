@@ -195,10 +195,10 @@ public class ItemStackPrompt extends QuestsEditorNumericPrompt {
                     for (final String key : map.keySet()) {
                         if (key.equals("pages")) {
                             final List<String> pages = (List<String>) map.get(key);
-                            text.append("\n").append(ChatColor.GRAY).append("\u2515 ").append(ChatColor.DARK_GREEN)
+                            text.append("\n").append(ChatColor.GRAY).append("  \u2515 ").append(ChatColor.DARK_GREEN)
                                     .append(key).append("=").append(pages.size());
                         } else {
-                            text.append("\n").append(ChatColor.GRAY).append("\u2515 ").append(ChatColor.DARK_GREEN)
+                            text.append("\n").append(ChatColor.GRAY).append("  \u2515 ").append(ChatColor.DARK_GREEN)
                                     .append(key).append("=").append(map.get(key));
                         }
                     }
@@ -228,10 +228,10 @@ public class ItemStackPrompt extends QuestsEditorNumericPrompt {
                         for (final String key : map.keySet()) {
                             if (key.equals("pages")) {
                                 final List<String> pages = (List<String>) map.get(key);
-                                text.append("\n").append(ChatColor.GRAY).append("\u2515 ").append(ChatColor.DARK_GREEN)
+                                text.append("\n").append(ChatColor.GRAY).append("  \u2515 ").append(ChatColor.DARK_GREEN)
                                         .append(key).append("=").append(pages.size());
                             } else {
-                                text.append("\n").append(ChatColor.GRAY).append("\u2515 ").append(ChatColor.DARK_GREEN)
+                                text.append("\n").append(ChatColor.GRAY).append("  \u2515 ").append(ChatColor.DARK_GREEN)
                                         .append(key).append("=").append(map.get(key));
                             }
                         }

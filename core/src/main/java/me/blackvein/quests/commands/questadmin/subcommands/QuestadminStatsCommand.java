@@ -22,6 +22,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,6 +58,11 @@ public class QuestadminStatsCommand extends QuestsSubCommand {
     @Override
     public String getSyntax() {
         return "/questadmin stats";
+    }
+
+    @Override
+    public int getMaxArguments() {
+        return 2;
     }
 
     @Override
@@ -108,5 +115,13 @@ public class QuestadminStatsCommand extends QuestsSubCommand {
         } else {
             cs.sendMessage(ChatColor.RED + Lang.get("noPermission"));
         }
+    }
+
+    @Override
+    public List<String> tabComplete(CommandSender commandSender, String[] args) {
+        if (args.length == 2) {
+            return null; // Shows online players
+        }
+        return Collections.emptyList();
     }
 }

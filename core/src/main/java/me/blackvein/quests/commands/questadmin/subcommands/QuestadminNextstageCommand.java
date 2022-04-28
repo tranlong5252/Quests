@@ -23,6 +23,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class QuestadminNextstageCommand extends QuestsSubCommand {
@@ -56,6 +59,11 @@ public class QuestadminNextstageCommand extends QuestsSubCommand {
     @Override
     public String getSyntax() {
         return "/questadmin nextstage";
+    }
+
+    @Override
+    public int getMaxArguments() {
+        return 3;
     }
 
     @Override
@@ -98,5 +106,21 @@ public class QuestadminNextstageCommand extends QuestsSubCommand {
         } else {
             cs.sendMessage(ChatColor.RED + Lang.get("noPermission"));
         }
+    }
+
+    @Override
+    public List<String> tabComplete(CommandSender commandSender, String[] args) {
+        if (args.length == 2) {
+            return null; // Shows online players
+        } else if (args.length == 3) {
+            final List<String> results = new ArrayList<>();
+            for (final IQuest quest : plugin.getLoadedQuests()) {
+                if (quest.getName().toLowerCase().startsWith(args[2].toLowerCase())) {
+                    results.add(ChatColor.stripColor(quest.getName()));
+                }
+            }
+            return results;
+        }
+        return Collections.emptyList();
     }
 }
