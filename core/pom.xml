@@ -5,7 +5,7 @@
     <parent>
         <groupId>me.blackvein.quests</groupId>
         <artifactId>quests-parent</artifactId>
-        <version>4.2.4</version>
+        <version>4.4.0</version>
     </parent>
     <artifactId>quests-core</artifactId>
 
@@ -15,7 +15,7 @@
 
     <repositories>
         <repository>
-            <!-- CitizensBooks, DungeonsXL, GPS, LocaleLib, mcMMO Classic, PhatLoots -->
+            <!-- CitizensBooks, DungeonsXL, GPS, LocaleLib, mcMMO Classic, PhatLoots, Unite -->
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
@@ -126,13 +126,18 @@
         <dependency>
             <groupId>com.github.PikaMug</groupId>
             <artifactId>Unite</artifactId>
-            <version>1.1.2</version>
+            <version>1.1.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.PikaMug</groupId>
             <artifactId>LocaleLib</artifactId>
-            <version>2.5</version>
+            <version>35b50bfd53</version>
+        </dependency>
+        <dependency>
+            <groupId>xyz.upperlevel.spigot.book</groupId>
+            <artifactId>spigot-book-api</artifactId>
+            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -244,11 +249,26 @@
                             <include>me.*</include>
                             <include>com.github.PikaMug:LocaleLib</include>
                             <include>com.zaxxer:HikariCP</include>
+                            <include>mysql</include>
                             <include>org.slf4j:slf4j-simple</include>
                             <include>org.slf4j:slf4j-api</include>
-                            <include>mysql</include>
+                            <include>xyz.upperlevel.spigot.book:spigot-book-api</include>
                         </includes>
                     </artifactSet>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.MF</exclude>
+                            </excludes>
+                        </filter>
+                        <filter>
+                            <artifact>com.github.PikaMug:LocaleLib</artifact>
+                            <excludes>
+                                <exclude>plugin.yml</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                     <relocations>
                         <relocation>
                             <pattern>me.pikamug.localelib</pattern>
@@ -259,12 +279,16 @@
                             <shadedPattern>me.blackvein.quests.libs.hikari</shadedPattern>
                         </relocation>
                         <relocation>
+                            <pattern>com.mysql</pattern>
+                            <shadedPattern>me.blackvein.quests.libs.mysql</shadedPattern>
+                        </relocation>
+                        <relocation>
                             <pattern>org.slf4j</pattern>
                             <shadedPattern>me.blackvein.quests.libs.slf4j</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>com.mysql</pattern>
-                            <shadedPattern>me.blackvein.quests.libs.mysql</shadedPattern>
+                            <pattern>xyz.upperlevel.spigot.book</pattern>
+                            <shadedPattern>me.blackvein.quests.libs.bookutil</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>

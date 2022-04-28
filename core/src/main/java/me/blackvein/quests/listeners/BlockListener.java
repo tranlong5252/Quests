@@ -13,14 +13,15 @@
 package me.blackvein.quests.listeners;
 
 import me.blackvein.quests.Quester;
+import me.blackvein.quests.nms.ActionBarProvider;
+import me.blackvein.quests.quests.IQuest;
+import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.Quests;
+import me.blackvein.quests.quests.IStage;
 import me.blackvein.quests.enums.ObjectiveType;
 import me.blackvein.quests.events.quester.QuesterPostUpdateObjectiveEvent;
 import me.blackvein.quests.events.quester.QuesterPreUpdateObjectiveEvent;
-import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.quests.BukkitObjective;
-import me.blackvein.quests.quests.IQuest;
-import me.blackvein.quests.quests.IStage;
 import me.blackvein.quests.util.ItemUtil;
 import me.blackvein.quests.util.Lang;
 import org.bukkit.ChatColor;
@@ -78,12 +79,11 @@ public class BlockListener implements Listener {
                         if (currentStage.containsObjective(breakType)) {
                             if (quest.getOptions().canIgnoreSilkTouch()
                                     && player.getItemInHand().containsEnchantment(Enchantment.SILK_TOUCH)) {
-                                Lang.send(player, ChatColor.RED + Lang.get(player, "optionSilkTouchFail")
-                                        .replace("<quest>", quest.getName()));
+                                ActionBarProvider.sendActionBar(player, ChatColor.RED + Lang
+                                        .get(player, "optionSilkTouchFail").replace("<quest>", quest.getName()));
                             } else {
                                 quester.breakBlock(quest, blockItemStack);
 
-                                // Multiplayer
                                 dispatchedBreakQuestIDs.addAll(quester.dispatchMultiplayerEverything(quest, breakType,
                                         (final IQuester q, final IQuest cq) -> {
                                             if (!dispatchedBreakQuestIDs.contains(cq.getId())) {

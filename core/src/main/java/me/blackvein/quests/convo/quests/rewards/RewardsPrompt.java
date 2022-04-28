@@ -561,60 +561,6 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
         }
     }
 
-    public class RewardsExperiencePrompt extends QuestsEditorStringPrompt {
-
-        public RewardsExperiencePrompt(final ConversationContext context) {
-            super(context);
-        }
-
-        @Override
-        public String getTitle(final ConversationContext context) {
-            return null;
-        }
-
-        @Override
-        public String getQueryText(final ConversationContext context) {
-            return Lang.get("rewExperiencePrompt");
-        }
-        
-        @Override
-        public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
-            
-            return ChatColor.YELLOW + getQueryText(context);
-        }
-        
-        @Override
-        public Prompt acceptInput(final @NotNull ConversationContext context, final String input) {
-            if (input == null) {
-                return null;
-            }
-            if (!input.equalsIgnoreCase(Lang.get("cmdCancel")) && !input.equalsIgnoreCase(Lang.get("cmdClear"))) {
-                try {
-                    final int i = Integer.parseInt(input);
-                    if (i > 0) {
-                        context.setSessionData(CK.REW_EXP, i);
-                    } else {
-                        context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("inputPosNum"));
-                        return new RewardsExperiencePrompt(context);
-                    }
-                } catch (final NumberFormatException e) {
-                    context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("reqNotANumber")
-                            .replace("<input>", input));
-                    return new RewardsExperiencePrompt(context);
-                }
-            } else if (input.equalsIgnoreCase(Lang.get("cmdClear"))) {
-                context.setSessionData(CK.REW_EXP, null);
-                return new RewardsPrompt(context);
-            }
-            return new RewardsPrompt(context);
-        }
-    }
-
     public class RewardsQuestPointsPrompt extends QuestsEditorStringPrompt {
         
         public RewardsQuestPointsPrompt(final ConversationContext context) {
@@ -789,6 +735,60 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
             default:
                 return new RewardsItemListPrompt(context);
             }
+        }
+    }
+
+    public class RewardsExperiencePrompt extends QuestsEditorStringPrompt {
+
+        public RewardsExperiencePrompt(final ConversationContext context) {
+            super(context);
+        }
+
+        @Override
+        public String getTitle(final ConversationContext context) {
+            return null;
+        }
+
+        @Override
+        public String getQueryText(final ConversationContext context) {
+            return Lang.get("rewExperiencePrompt");
+        }
+
+        @Override
+        public @NotNull String getPromptText(final @NotNull ConversationContext context) {
+            if (context.getPlugin() != null) {
+                final QuestsEditorPostOpenStringPromptEvent event
+                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
+                context.getPlugin().getServer().getPluginManager().callEvent(event);
+            }
+
+            return ChatColor.YELLOW + getQueryText(context);
+        }
+
+        @Override
+        public Prompt acceptInput(final @NotNull ConversationContext context, final String input) {
+            if (input == null) {
+                return null;
+            }
+            if (!input.equalsIgnoreCase(Lang.get("cmdCancel")) && !input.equalsIgnoreCase(Lang.get("cmdClear"))) {
+                try {
+                    final int i = Integer.parseInt(input);
+                    if (i > 0) {
+                        context.setSessionData(CK.REW_EXP, i);
+                    } else {
+                        context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("inputPosNum"));
+                        return new RewardsExperiencePrompt(context);
+                    }
+                } catch (final NumberFormatException e) {
+                    context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("reqNotANumber")
+                            .replace("<input>", input));
+                    return new RewardsExperiencePrompt(context);
+                }
+            } else if (input.equalsIgnoreCase(Lang.get("cmdClear"))) {
+                context.setSessionData(CK.REW_EXP, null);
+                return new RewardsPrompt(context);
+            }
+            return new RewardsPrompt(context);
         }
     }
     
@@ -1799,8 +1799,8 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
                     text.append(ChatColor.DARK_AQUA).append(ChatColor.UNDERLINE)
                             .append("https://pikamug.gitbook.io/quests/casual/modules").append(ChatColor.RESET)
                             .append("\n");
-                    text.append(ChatColor.DARK_PURPLE).append("(").append(Lang.get("stageEditorNoModules"))
-                            .append(") ");
+                    text.append(ChatColor.RED).append("(").append(Lang.get("stageEditorNoModules")).append(")")
+                            .append("\n");
                 } else {
                     for (final String name : plugin.getCustomRewards().stream().map(CustomReward::getModuleName)
                             .collect(Collectors.toCollection(TreeSet::new))) {
@@ -1812,12 +1812,12 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
             final TextComponent component = new TextComponent(getTitle(context) + "\n");
             component.setColor(net.md_5.bungee.api.ChatColor.LIGHT_PURPLE);
             final TextComponent line = new TextComponent("");
-            if (plugin.getCustomObjectives().isEmpty()) {
+            if (plugin.getCustomRewards().isEmpty()) {
                 final TextComponent link = new TextComponent("https://pikamug.gitbook.io/quests/casual/modules\n");
                 link.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
                 link.setUnderlined(true);
                 line.addExtra(link);
-                line.addExtra(ChatColor.DARK_AQUA + "(" + Lang.get("stageEditorNoModules") + ") ");
+                line.addExtra(ChatColor.RED + "(" + Lang.get("stageEditorNoModules") + ")\n");
             } else {
                 for (final String name : plugin.getCustomRewards().stream().map(CustomReward::getModuleName)
                         .collect(Collectors.toCollection(TreeSet::new))) {
@@ -1905,8 +1905,8 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
                 final StringBuilder text = new StringBuilder(ChatColor.LIGHT_PURPLE + getTitle(context) + "\n");
                 if (plugin.getCustomRewards().isEmpty()) {
                     text.append(ChatColor.DARK_AQUA).append(ChatColor.UNDERLINE)
-                            .append("https://pikamug.gitbook.io/quests/casual/modules\n").append(ChatColor.DARK_PURPLE)
-                            .append("(").append(Lang.get("stageEditorNoModules")).append(") ");
+                            .append("https://pikamug.gitbook.io/quests/casual/modules\n");
+                    text.append(ChatColor.RED).append("(").append(Lang.get("stageEditorNoModules")).append(")\n");
                 } else {
                     for (final CustomReward cr : plugin.getCustomRewards()) {
                         if (cr.getModuleName().equals(moduleName)) {
@@ -1919,12 +1919,12 @@ public class RewardsPrompt extends QuestsEditorNumericPrompt {
             final TextComponent component = new TextComponent(getTitle(context) + "\n");
             component.setColor(net.md_5.bungee.api.ChatColor.LIGHT_PURPLE);
             final TextComponent line = new TextComponent("");
-            if (plugin.getCustomObjectives().isEmpty()) {
+            if (plugin.getCustomRewards().isEmpty()) {
                 final TextComponent link = new TextComponent("https://pikamug.gitbook.io/quests/casual/modules\n");
                 link.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
                 link.setUnderlined(true);
                 line.addExtra(link);
-                line.addExtra(ChatColor.DARK_AQUA + "(" + Lang.get("stageEditorNoModules") + ") ");
+                line.addExtra(ChatColor.RED + "(" + Lang.get("stageEditorNoModules") + ")\n");
             } else {
                 for (final CustomReward co : plugin.getCustomRewards()) {
                     if (co.getModuleName().equals(moduleName)) {

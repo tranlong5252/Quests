@@ -10,40 +10,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package me.blackvein.quests.quests;
+package me.blackvein.quests.nms;
 
-public interface Planner {
-    String getStart();
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.entity.Player;
 
-    long getStartInMillis();
+class ActionBarProvider_Bukkit extends ActionBarProvider {
 
-    boolean hasStart();
-
-    void setStart(final String start);
-
-    String getEnd();
-
-    long getEndInMillis();
-
-    boolean hasEnd();
-
-    void setEnd(final String end);
-
-    long getRepeat();
-
-    boolean hasRepeat();
-
-    void setRepeat(final long repeat);
-
-    long getCooldown();
-
-    boolean hasCooldown();
-
-    void setCooldown(final long cooldown);
-
-    boolean getOverride();
-
-    void setOverride(final boolean override);
-    boolean isResetOnNewDay();
-    void setResetOnNewDay(final boolean resetOnNewDay);
+    @Override
+    void sendActionBarPacket(final Player player, String message) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
+    }
 }

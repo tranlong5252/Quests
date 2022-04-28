@@ -37,6 +37,7 @@ public class Settings implements ISettings {
     private int consoleLogging = 1;
     private boolean disableCommandFeedback = true;
     private boolean genFilesOnJoin = true;
+    private boolean giveJournalItem = false;
     private boolean ignoreLockedQuests = false;
     private int killDelay = 0;
     private int maxQuests = 0;
@@ -136,6 +137,12 @@ public class Settings implements ISettings {
     }
     public void setGenFilesOnJoin(final boolean genFilesOnJoin) {
         this.genFilesOnJoin = genFilesOnJoin;
+    }
+    public boolean canGiveJournalItem() {
+        return giveJournalItem;
+    }
+    public void setGiveJournalItem(final boolean giveJournalItem) {
+        this.giveJournalItem = giveJournalItem;
     }
     public boolean canIgnoreLockedQuests() {
         return ignoreLockedQuests;
@@ -246,6 +253,7 @@ public class Settings implements ISettings {
         consoleLogging = config.getInt("console-logging", 1);
         disableCommandFeedback = config.getBoolean("disable-command-feedback", true);
         genFilesOnJoin = config.getBoolean("generate-files-on-join", true);
+        giveJournalItem = config.getBoolean("give-journal-item", false);
         ignoreLockedQuests = config.getBoolean("ignore-locked-quests", false);
         killDelay = config.getInt("kill-delay", 600);
         if (Objects.requireNonNull(config.getString("language")).equalsIgnoreCase("en")) {

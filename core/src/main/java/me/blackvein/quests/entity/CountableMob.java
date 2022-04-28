@@ -10,40 +10,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package me.blackvein.quests.quests;
+package me.blackvein.quests.entity;
 
-public interface Planner {
-    String getStart();
+import org.bukkit.entity.EntityType;
 
-    long getStartInMillis();
+public class CountableMob {
 
-    boolean hasStart();
+    private EntityType entityType;
+    private int count;
 
-    void setStart(final String start);
+    public CountableMob(EntityType entityType, int count) {
+        this.entityType = entityType;
+        this.count = count;
+    }
 
-    String getEnd();
+    public EntityType getEntityType() {
+        return entityType;
+    }
 
-    long getEndInMillis();
+    public void setEntityType(final EntityType entityType) {
+        this.entityType = entityType;
+    }
 
-    boolean hasEnd();
+    public int getCount() {
+        return count;
+    }
 
-    void setEnd(final String end);
-
-    long getRepeat();
-
-    boolean hasRepeat();
-
-    void setRepeat(final long repeat);
-
-    long getCooldown();
-
-    boolean hasCooldown();
-
-    void setCooldown(final long cooldown);
-
-    boolean getOverride();
-
-    void setOverride(final boolean override);
-    boolean isResetOnNewDay();
-    void setResetOnNewDay(final boolean resetOnNewDay);
+    public void setCount(final int count) {
+        this.count = count;
+    }
 }

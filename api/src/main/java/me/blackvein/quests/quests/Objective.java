@@ -13,16 +13,18 @@
 package me.blackvein.quests.quests;
 
 import me.blackvein.quests.enums.ObjectiveType;
-import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public interface Objective {
     ObjectiveType getType();
+
+    String getMessage();
 
     int getProgress();
 
     int getGoal();
 
-    ItemStack getItemProgress();
+    @NotNull Object getProgressObject();
 
-    ItemStack getItemGoal();
+    @NotNull Object getGoalObject();
 }

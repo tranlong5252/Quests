@@ -38,7 +38,6 @@ import me.blackvein.quests.exceptions.QuestFormatException;
 import me.blackvein.quests.exceptions.StageFormatException;
 import me.blackvein.quests.interfaces.ReloadCallback;
 import me.blackvein.quests.listeners.BlockListener;
-import me.blackvein.quests.listeners.BungeeListener;
 import me.blackvein.quests.listeners.CommandManager;
 import me.blackvein.quests.listeners.ConvoListener;
 import me.blackvein.quests.listeners.ItemListener;
@@ -148,7 +147,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     private final Collection<IQuest> quests = new ConcurrentSkipListSet<>();
     private Collection<IAction> actions = new ConcurrentSkipListSet<>();
     private Collection<ICondition> conditions = new ConcurrentSkipListSet<>();
-    private LinkedList<Integer> questNpcIds = new LinkedList<>();
     private TabExecutor cmdExecutor;
     private ConversationFactory conversationFactory;
     private ConversationFactory npcConversationFactory;
@@ -157,7 +155,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     private ConditionFactory conditionFactory;
     private ConvoListener convoListener;
     private BlockListener blockListener;
-    private BungeeListener bungeeListener;
     private ItemListener itemListener;
     private NpcListener npcListener;
     private PlayerListener playerListener;
@@ -186,7 +183,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
         convoListener = new ConvoListener();
         blockListener = new BlockListener(this);
-        bungeeListener = new BungeeListener(this);
         itemListener = new ItemListener(this);
         npcListener = new NpcListener(this);
         playerListener = new PlayerListener(this);
@@ -266,9 +262,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             getServer().getPluginManager().registerEvents(getUniteListener(), this);
         } else if (depends.getPartiesApi() != null) {
             getServer().getPluginManager().registerEvents(getPartiesListener(), this);
-        }
-        if (hasBungeeEnabled()) {
-            getServer().getMessenger().registerIncomingPluginChannel(this, "quests:update", getBungeeListener());
         }
 
         // 11 - Attempt to check for updates
@@ -537,14 +530,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         this.questers = new ConcurrentSkipListSet<>(questers);
     }
 
-    public LinkedList<Integer> getQuestNpcIds() {
-        return questNpcIds;
-    }
-
-    public void setQuestNpcIds(final LinkedList<Integer> questNpcIds) {
-        this.questNpcIds = questNpcIds;
-    }
-
     public CommandExecutor getCommandExecutor() {
         return cmdExecutor;
     }
@@ -579,10 +564,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
 
     public BlockListener getBlockListener() {
         return blockListener;
-    }
-
-    public BungeeListener getBungeeListener() {
-        return bungeeListener;
     }
 
     public ItemListener getItemListener() {
@@ -744,11 +725,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 return new QuestAcceptPrompt(context);
             }
         }
-    }
-
-    private boolean hasBungeeEnabled() {
-        final ConfigurationSection section = getServer().spigot().getConfig().getConfigurationSection("settings");
-        return section != null && section.getBoolean("bungeecord");
     }
 
     /**
@@ -1377,7 +1353,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 delivered = data.itemsDelivered.get(deliverIndex).getAmount();
             }
             final int toDeliver = is.getAmount();
-            final Integer npc = stage.getItemDeliveryTargets().get(deliverIndex);
+            final UUID npc = stage.getItemDeliveryTargets().get(deliverIndex);
             final ChatColor color = delivered < toDeliver ? ChatColor.GREEN : ChatColor.GRAY;
             String message = color + "- " + Lang.get(quester.getPlayer(), "deliver").replace("<npc>", depends.getNPCName(npc));
             if (message.contains("<count>")) {
@@ -1398,14 +1374,14 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             deliverIndex++;
         }
         int interactIndex = 0;
-        for (final Integer n : stage.getCitizensToInteract()) {
+        for (final UUID uuid : stage.getNpcsToInteract()) {
             boolean interacted = false;
-            if (data.citizensInteracted.size() > interactIndex) {
-                interacted = data.citizensInteracted.get(interactIndex);
+            if (data.npcsInteracted.size() > interactIndex) {
+                interacted = data.npcsInteracted.get(interactIndex);
             }
             final ChatColor color = !interacted ? ChatColor.GREEN : ChatColor.GRAY;
             String message = color + "- " + Lang.get(quester.getPlayer(), "talkTo")
-                    .replace("<npc>", depends.getNPCName(n));
+                    .replace("<npc>", depends.getNPCName(uuid));
             if (depends.getPlaceholderApi() != null) {
                 message = PlaceholderAPI.setPlaceholders(quester.getPlayer(), message);
             }
@@ -1413,18 +1389,18 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             interactIndex++;
         }
         int npcKillIndex = 0;
-        for (final Integer n : stage.getCitizensToKill()) {
+        for (final UUID uuid : stage.getNpcsToKill()) {
             int npcKilled = 0;
-            if (data.citizensNumKilled.size() > npcKillIndex) {
-                npcKilled = data.citizensNumKilled.get(npcKillIndex);
+            if (data.npcsNumKilled.size() > npcKillIndex) {
+                npcKilled = data.npcsNumKilled.get(npcKillIndex);
             }
-            final int toNpcKill = stage.getCitizenNumToKill().get(npcKillIndex);
+            final int toNpcKill = stage.getNpcNumToKill().get(npcKillIndex);
             final ChatColor color = npcKilled < toNpcKill ? ChatColor.GREEN : ChatColor.GRAY;
             String message = color + "- " + Lang.get(quester.getPlayer(), "kill");
             if (message.contains("<mob>")) {
-                message = message.replace("<mob>", depends.getNPCName(n));
+                message = message.replace("<mob>", depends.getNPCName(uuid));
             } else {
-                message += " " + depends.getNPCName(n);
+                message += " " + depends.getNPCName(uuid);
             }
             if (message.contains("<count>")) {
                 message = message.replace("<count>", "" + color + npcKilled + "/" + toNpcKill);
@@ -1615,7 +1591,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     }
     
     /**
-     * Show the player a list of their quests
+     * Show the player a list of their available quests
      * 
      * @param quester Quester to show the list
      * @param page Page to display, with 7 quests per page
@@ -1841,13 +1817,21 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         } else {
             throw new QuestFormatException("finish-message is missing", questKey);
         }
-        if (depends.getCitizens() != null && config.contains("quests." + questKey + ".npc-giver-id")) {
-            final int npcId = config.getInt("quests." + questKey + ".npc-giver-id");
-            if (CitizensAPI.getNPCRegistry().getById(npcId) != null) {
-                quest.setNpcStart(CitizensAPI.getNPCRegistry().getById(npcId));
-                questNpcIds.add(npcId);
+        if (depends.getCitizens() != null && config.contains("quests." + questKey + ".npc-giver-uuid")) {
+            final UUID uuid = UUID.fromString(Objects.requireNonNull(config.getString("quests." + questKey
+                    + ".npc-giver-uuid")));
+            if (CitizensAPI.getNPCRegistry().getByUniqueId(uuid) != null) {
+                quest.setNpcStart(CitizensAPI.getNPCRegistry().getByUniqueId(uuid));
             } else {
-                throw new QuestFormatException("npc-giver-id has invalid NPC ID " + npcId, questKey);
+                throw new QuestFormatException("npc-giver-uuid has invalid NPC UUID " + uuid, questKey);
+            }
+        } else if (depends.getCitizens() != null && config.contains("quests." + questKey + ".npc-giver-id")) {
+            // Legacy
+            final int id = config.getInt("quests." + questKey + ".npc-giver-id");
+            if (CitizensAPI.getNPCRegistry().getById(id) != null) {
+                quest.setNpcStart(CitizensAPI.getNPCRegistry().getById(id));
+            } else {
+                throw new QuestFormatException("npc-giver-id has invalid NPC ID " + id, questKey);
             }
         }
         if (config.contains("quests." + questKey + ".block-start")) {
@@ -1984,6 +1968,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 throw new QuestFormatException("Reward money is not a number", questKey);
             }
         }
+        if (config.contains("quests." + questKey + ".rewards.quest-points")) {
+            if (config.getInt("quests." + questKey + ".rewards.quest-points", -999) != -999) {
+                rewards.setQuestPoints(config.getInt("quests." + questKey + ".rewards.quest-points"));
+            } else {
+                throw new QuestFormatException("Reward quest-points is not a number", questKey);
+            }
+        }
         if (config.contains("quests." + questKey + ".rewards.exp")) {
             if (config.getInt("quests." + questKey + ".rewards.exp", -999) != -999) {
                 rewards.setExp(config.getInt("quests." + questKey + ".rewards.exp"));
@@ -2021,13 +2012,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 rewards.setPermissionWorlds(config.getStringList("quests." + questKey + ".rewards.permission-worlds"));
             } else {
                 throw new QuestFormatException("Reward permissions is not a list of worlds", questKey);
-            }
-        }
-        if (config.contains("quests." + questKey + ".rewards.quest-points")) {
-            if (config.getInt("quests." + questKey + ".rewards.quest-points", -999) != -999) {
-                rewards.setQuestPoints(config.getInt("quests." + questKey + ".rewards.quest-points"));
-            } else {
-                throw new QuestFormatException("Reward quest-points is not a number", questKey);
             }
         }
         if (depends.isPluginAvailable("mcMMO")) {
@@ -2200,6 +2184,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 requires.setQuestPoints(config.getInt("quests." + questKey + ".requirements.quest-points"));
             } else {
                 throw new QuestFormatException("Requirement quest-points is not a number", questKey);
+            }
+        }
+        if (config.contains("quests." + questKey + ".requirements.exp")) {
+            if (config.getInt("quests." + questKey + ".requirements.exp", -999) != -999) {
+                requires.setExp(config.getInt("quests." + questKey + ".requirements.exp"));
+            } else {
+                throw new QuestFormatException("Requirement exp is not a number", questKey);
             }
         }
         if (config.contains("quests." + questKey + ".requirements.quest-blocks")) {
@@ -2460,10 +2451,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final List<ItemStack> itemsToEnchant;
             final List<ItemStack> itemsToBrew;
             final List<ItemStack> itemsToConsume;
+            final List<String> npcUuidsToTalkTo;
             final List<Integer> npcIdsToTalkTo;
             final List<ItemStack> itemsToDeliver;
+            final List<String> itemDeliveryTargetUuids;
             final List<Integer> itemDeliveryTargetIds;
             final List<String> deliveryMessages;
+            final List<String> npcUuidsToKill;
             final List<Integer> npcIdsToKill;
             final List<Integer> npcAmountsToKill;
             // Legacy Denizen script load
@@ -2921,15 +2915,41 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                     throw new StageFormatException("players-to-kill is not a number", quest, stageNum);
                 }
             }
-            if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-ids-to-talk-to")) {
+            if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-uuids-to-talk-to")) {
+                if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum
+                        + ".npc-uuids-to-talk-to"), String.class)) {
+                    npcUuidsToTalkTo = config.getStringList("quests." + questKey + ".stages.ordered." + stageNum
+                            + ".npc-uuids-to-talk-to");
+                    for (final String s : npcUuidsToTalkTo) {
+                        final UUID uuid = UUID.fromString(s);
+                        if (getDependencies().getCitizens() != null) {
+                            NPC npc = CitizensAPI.getNPCRegistry().getByUniqueId(uuid);
+                            if (npc != null) {
+                                oStage.addNpcToInteract(uuid);
+                            } else {
+                                throw new StageFormatException("npc-uuids-to-talk-to has invalid NPC UUID of "
+                                        + s, quest, stageNum);
+                            }
+                        } else {
+                            throw new StageFormatException("Citizens not found for npc-uuids-to-talk-to", quest,
+                                    stageNum);
+                        }
+                    }
+                } else {
+                    throw new StageFormatException("npc-ids-to-talk-to is not a list of numbers", quest, stageNum);
+                }
+            } else if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-ids-to-talk-to")) {
+                // Legacy
                 if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum 
                         + ".npc-ids-to-talk-to"), Integer.class)) {
                     npcIdsToTalkTo = config.getIntegerList("quests." + questKey + ".stages.ordered." + stageNum 
                             + ".npc-ids-to-talk-to");
                     for (final int i : npcIdsToTalkTo) {
                         if (getDependencies().getCitizens() != null) {
-                            if (CitizensAPI.getNPCRegistry().getById(i) != null) {
-                                questNpcIds.add(i);
+                            final NPC npc = CitizensAPI.getNPCRegistry().getById(i);
+                            if (npc != null) {
+                                final UUID npcUuid = npc.getUniqueId();
+                                oStage.addNpcToInteract(npcUuid);
                             } else {
                                 throw new StageFormatException("npc-ids-to-talk-to has invalid NPC ID of " + i, quest, 
                                         stageNum);
@@ -2939,37 +2959,82 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                                     stageNum);
                         }
                     }
-                    oStage.setCitizensToInteract(new LinkedList<>(npcIdsToTalkTo));
                 } else {
                     throw new StageFormatException("npc-ids-to-talk-to is not a list of numbers", quest, stageNum);
                 }
             }
             if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".items-to-deliver")) {
-                if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-delivery-ids")) {
-                    if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum 
-                            + ".npc-delivery-ids"), Integer.class)) {
-                        if (config.contains("quests." + questKey + ".stages.ordered." + stageNum 
+                if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-delivery-uuids")) {
+                    if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum
+                            + ".npc-delivery-uuids"), String.class)) {
+                        if (config.contains("quests." + questKey + ".stages.ordered." + stageNum
                                 + ".delivery-messages")) {
-                            itemsToDeliver = (List<ItemStack>) config.get("quests." + questKey + ".stages.ordered." 
+                            itemsToDeliver = (List<ItemStack>) config.get("quests." + questKey + ".stages.ordered."
                                     + stageNum + ".items-to-deliver");
-                            itemDeliveryTargetIds = config.getIntegerList("quests." + questKey + ".stages.ordered." 
+                            itemDeliveryTargetUuids = config.getStringList("quests." + questKey + ".stages.ordered."
+                                    + stageNum + ".npc-delivery-uuids");
+                            deliveryMessages = config.getStringList("quests." + questKey + ".stages.ordered."
+                                    + stageNum + ".delivery-messages");
+                            int index = 0;
+                            if (ConfigUtil.checkList(itemsToDeliver, ItemStack.class)) {
+                                for (final ItemStack stack : itemsToDeliver) {
+                                    if (stack != null) {
+                                        final UUID npcUuid = UUID.fromString(itemDeliveryTargetUuids.get(index));
+                                        final String msg = deliveryMessages.size() > index
+                                                ? deliveryMessages.get(index)
+                                                : deliveryMessages.get(deliveryMessages.size() - 1);
+                                        index++;
+                                        if (getDependencies().getCitizens() != null) {
+                                            final NPC npc = CitizensAPI.getNPCRegistry().getByUniqueId(npcUuid);
+                                            if (npc != null) {
+                                                oStage.addItemToDeliver(stack);
+                                                oStage.addItemDeliveryTarget(npcUuid);
+                                                oStage.addDeliverMessage(msg);
+                                            } else {
+                                                throw new StageFormatException("npc-delivery-ids has invalid NPC " +
+                                                        "UUID of " + npcUuid, quest, stageNum);
+                                            }
+                                        } else {
+                                            throw new StageFormatException(
+                                                    "Citizens not found for npc-delivery-uuids", quest, stageNum);
+                                        }
+                                    }
+                                }
+                            } else {
+                                throw new StageFormatException("items-to-deliver has invalid formatting", quest,
+                                        stageNum);
+                            }
+                        }
+                    } else {
+                        throw new StageFormatException("npc-delivery-ids is not a list of numbers", quest, stageNum);
+                    }
+                } else if (config.contains("quests." + questKey + ".stages.ordered." + stageNum
+                        + ".npc-delivery-ids")) {
+                    // Legacy
+                    if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum
+                            + ".npc-delivery-ids"), Integer.class)) {
+                        if (config.contains("quests." + questKey + ".stages.ordered." + stageNum
+                                + ".delivery-messages")) {
+                            itemsToDeliver = (List<ItemStack>) config.get("quests." + questKey + ".stages.ordered."
+                                    + stageNum + ".items-to-deliver");
+                            itemDeliveryTargetIds = config.getIntegerList("quests." + questKey + ".stages.ordered."
                                     + stageNum + ".npc-delivery-ids");
-                            deliveryMessages = config.getStringList("quests." + questKey + ".stages.ordered." 
+                            deliveryMessages = config.getStringList("quests." + questKey + ".stages.ordered."
                                     + stageNum + ".delivery-messages");
                             int index = 0;
                             if (ConfigUtil.checkList(itemsToDeliver, ItemStack.class)) {
                                 for (final ItemStack stack : itemsToDeliver) {
                                     if (stack != null) {
                                         final int npcId = itemDeliveryTargetIds.get(index);
-                                        final String msg = deliveryMessages.size() > index 
-                                                ? deliveryMessages.get(index) 
+                                        final String msg = deliveryMessages.size() > index
+                                                ? deliveryMessages.get(index)
                                                 : deliveryMessages.get(deliveryMessages.size() - 1);
                                         index++;
                                         if (getDependencies().getCitizens() != null) {
                                             final NPC npc = CitizensAPI.getNPCRegistry().getById(npcId);
                                             if (npc != null) {
                                                 oStage.addItemToDeliver(stack);
-                                                oStage.addItemDeliveryTarget(npcId);
+                                                oStage.addItemDeliveryTarget(npc.getUniqueId());
                                                 oStage.addDeliverMessage(msg);
                                             } else {
                                                 throw new StageFormatException("npc-delivery-ids has invalid NPC " +
@@ -2982,52 +3047,8 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                                     }
                                 }
                             } else {
-                                final List<String> items = config.getStringList("quests." + questKey 
-                                        + ".stages.ordered." + stageNum + ".items-to-deliver");
-                                if (ConfigUtil.checkList(items, String.class)) {
-                                    // Legacy
-                                    for (final String item : items) {
-                                        final ItemStack is = ItemUtil.readItemStack("" + item);
-                                        if (index <= itemDeliveryTargetIds.size()) {
-                                            if (itemDeliveryTargetIds.size() != deliveryMessages.size()) {
-                                                throw new StageFormatException(
-                                                        "delivery-messages must be same size as items-to-deliver",
-                                                        quest, stageNum);
-                                            }
-                                            final int npcId = itemDeliveryTargetIds.get(index);
-                                            final String msg = deliveryMessages.get(index);
-                                            index++;
-                                            if (is != null) {
-                                                if (getDependencies().getCitizens() != null) {
-                                                    final NPC npc = CitizensAPI.getNPCRegistry().getById(npcId);
-                                                    if (npc != null) {
-                                                        oStage.addItemToDeliver(is);
-                                                        oStage.addItemDeliveryTarget(npcId);
-                                                        oStage.addDeliverMessage(msg);
-                                                    } else {
-                                                        throw new StageFormatException(
-                                                                "npc-delivery-ids has invalid NPC ID of " + npcId, 
-                                                                quest, stageNum);
-                                                    }
-                                                } else {
-                                                    throw new StageFormatException(
-                                                            "Citizens was not found installed for npc-delivery-ids", 
-                                                            quest, stageNum);
-                                                }
-                                            } else {
-                                                throw new StageFormatException(
-                                                        "items-to-deliver has invalid formatting " + item, quest, 
-                                                        stageNum);
-                                            }
-                                        } else {
-                                            throw new StageFormatException("items-to-deliver is missing target IDs"
-                                                    , quest, stageNum);
-                                        }
-                                    }
-                                } else {
-                                    throw new StageFormatException("items-to-deliver has invalid formatting", quest, 
-                                            stageNum);
-                                }
+                                throw new StageFormatException("items-to-deliver has invalid formatting", quest,
+                                        stageNum);
                             }
                         }
                     } else {
@@ -3037,29 +3058,30 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                     throw new StageFormatException("npc-delivery-id is missing", quest, stageNum);
                 }
             }
-            if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-ids-to-kill")) {
-                if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum 
-                        + ".npc-ids-to-kill"), Integer.class)) {
+            if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-uuids-to-kill")) {
+                if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum
+                        + ".npc-uuids-to-kill"), String.class)) {
                     if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-kill-amounts")) {
-                        if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum 
+                        if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum
                                 + ".npc-kill-amounts"), Integer.class)) {
-                            npcIdsToKill = config.getIntegerList("quests." + questKey + ".stages.ordered." + stageNum 
-                                    + ".npc-ids-to-kill");
+                            npcUuidsToKill = config.getStringList("quests." + questKey + ".stages.ordered." + stageNum
+                                    + ".npc-uuids-to-kill");
                             npcAmountsToKill = config.getIntegerList("quests." + questKey + ".stages.ordered." 
                                     + stageNum + ".npc-kill-amounts");
-                            for (final int i : npcIdsToKill) {
-                                if (CitizensAPI.getNPCRegistry().getById(i) != null) {
-                                    if (npcAmountsToKill.get(npcIdsToKill.indexOf(i)) > 0) {
-                                        oStage.addCitizenToKill(i);
-                                        oStage.addCitizenNumToKill(npcAmountsToKill.get(npcIdsToKill.indexOf(i)));
-                                        questNpcIds.add(i);
+                            for (final String s : npcUuidsToKill) {
+                                final UUID npcUuid = UUID.fromString(s);
+                                final NPC npc = CitizensAPI.getNPCRegistry().getByUniqueId(npcUuid);
+                                if (npc != null) {
+                                    if (npcAmountsToKill.get(npcUuidsToKill.indexOf(s)) > 0) {
+                                        oStage.addNpcToKill(npcUuid);
+                                        oStage.addNpcNumToKill(npcAmountsToKill.get(npcUuidsToKill.indexOf(s)));
                                     } else {
                                         throw new StageFormatException("npc-kill-amounts is not a positive number", 
                                                 quest, stageNum);
                                     }
                                 } else {
-                                    throw new StageFormatException("npc-ids-to-kill has invalid NPC ID of " + i, quest,
-                                            stageNum);
+                                    throw new StageFormatException("npc-uuids-to-kill has invalid NPC UUID of " + s,
+                                            quest, stageNum);
                                 }
                             }
                         } else {
@@ -3069,8 +3091,41 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                     } else {
                         throw new StageFormatException("npc-kill-amounts is missing", quest, stageNum);
                     }
-                } else {
-                    throw new StageFormatException("npc-ids-to-kill is not a list of numbers", quest, stageNum);
+                }
+            } else if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-ids-to-kill")) {
+                if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum
+                        + ".npc-ids-to-kill"), Integer.class)) {
+                    // Legacy
+                    if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".npc-kill-amounts")) {
+                        if (ConfigUtil.checkList(config.getList("quests." + questKey + ".stages.ordered." + stageNum
+                                + ".npc-kill-amounts"), Integer.class)) {
+                            npcIdsToKill = config.getIntegerList("quests." + questKey + ".stages.ordered." + stageNum
+                                    + ".npc-ids-to-kill");
+                            npcAmountsToKill = config.getIntegerList("quests." + questKey + ".stages.ordered."
+                                    + stageNum + ".npc-kill-amounts");
+                            for (final int i : npcIdsToKill) {
+                                final NPC npc = CitizensAPI.getNPCRegistry().getById(i);
+                                if (npc != null) {
+                                    if (npcAmountsToKill.get(npcIdsToKill.indexOf(i)) > 0) {
+                                        final UUID npcUuid = npc.getUniqueId();
+                                        oStage.addNpcToKill(npcUuid);
+                                        oStage.addNpcNumToKill(npcAmountsToKill.get(npcIdsToKill.indexOf(i)));
+                                    } else {
+                                        throw new StageFormatException("npc-kill-amounts is not a positive number",
+                                                quest, stageNum);
+                                    }
+                                } else {
+                                    throw new StageFormatException("npc-ids-to-kill has invalid NPC ID of " + i, quest,
+                                            stageNum);
+                                }
+                            }
+                        } else {
+                            throw new StageFormatException("npc-kill-amounts is not a list of numbers", quest,
+                                    stageNum);
+                        }
+                    } else {
+                        throw new StageFormatException("npc-kill-amounts is missing", quest, stageNum);
+                    }
                 }
             }
             if (config.contains("quests." + questKey + ".stages.ordered." + stageNum + ".mobs-to-kill")) {
@@ -3878,17 +3933,43 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 throw new ConditionFormatException("ride-entity is not a list of entity types", conditionKey);
             }
         }
-        if (data.contains(conditionKey + "ride-npc")) {
-            if (ConfigUtil.checkList(data.getList(conditionKey + "ride-npc"), Integer.class)) {
-                final LinkedList<Integer> npcList = new LinkedList<>();
-                for (final int i : data.getIntegerList(conditionKey + "ride-npc")) {
-                    if (i < 0) {
-                        throw new ConditionFormatException("ride-npc is not a valid NPC ID",
-                                conditionKey);
+        if (data.contains(conditionKey + "ride-npc-uuid")) {
+            if (ConfigUtil.checkList(data.getList(conditionKey + "ride-npc-uuid"), String.class)) {
+                final LinkedList<UUID> npcList = new LinkedList<>();
+                for (final String s : data.getStringList(conditionKey + "ride-npc-uuid")) {
+                    final UUID u = UUID.fromString(s);
+                    if (getDependencies().getCitizens() != null) {
+                        final NPC npc = CitizensAPI.getNPCRegistry().getByUniqueId(u);
+                        if (npc != null) {
+                            npcList.add(u);
+                        } else {
+                            throw new ConditionFormatException("ride-npc-uuid is not a valid NPC UUID",
+                                    conditionKey);
+                        }
+                    } else {
+                        throw new ConditionFormatException("Citizens not found for ride-npc-uuid", conditionKey);
                     }
-                    npcList.add(i);
                 }
                 condition.setNpcsWhileRiding(npcList);
+            }
+        } else if (data.contains(conditionKey + "ride-npc")) {
+            // Legacy
+            if (ConfigUtil.checkList(data.getList(conditionKey + "ride-npc"), Integer.class)) {
+                final LinkedList<UUID> npcList = new LinkedList<>();
+                if (getDependencies().getCitizens() != null) {
+                    for (final int i : data.getIntegerList(conditionKey + "ride-npc")) {
+                        final NPC npc = CitizensAPI.getNPCRegistry().getById(i);
+                        if (npc != null) {
+                            npcList.add(npc.getUniqueId());
+                        } else {
+                            throw new ConditionFormatException("ride-npc is not a valid NPC ID",
+                                    conditionKey);
+                        }
+                    }
+                    condition.setNpcsWhileRiding(npcList);
+                } else {
+                    throw new ConditionFormatException("Citizens not found for ride-npc", conditionKey);
+                }
             } else {
                 throw new ConditionFormatException("ride-npc is not a list of NPC IDs", conditionKey);
             }

@@ -325,6 +325,11 @@ public class ItemUtil {
                         stored.put(Enchantment.getByName(keyval[0]), Integer.valueOf(keyval[1]));
                     }
                 }
+            } else if (arg.startsWith("charged")) {
+                final int dash = arg.lastIndexOf('-');
+                final String key = arg.substring(0, dash);
+                final String value = arg.substring(dash + 1);
+                extra.put(key, Boolean.valueOf(value));
             } else if (arg.contains("-")) {
                 final int dash = arg.lastIndexOf('-');
                 final String key = arg.substring(0, dash);
@@ -503,7 +508,8 @@ public class ItemUtil {
     /**
      * Essentially the reverse of ItemMeta.serialize()
      * 
-     * @param itemMetaClass key/value map of metadata
+     * @param itemMetaClass metadata class
+     * @param args key/value map of metadata
      * @return ItemMeta
      */
     public static ItemMeta deserializeItemMeta(final Class<? extends ItemMeta> itemMetaClass, final Map<String, Object> args) {

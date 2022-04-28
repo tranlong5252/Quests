@@ -46,7 +46,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
     private final Quests plugin;
     private final String classPrefix;
     private boolean hasRequirement = false;
-    private final int size = 11;
+    private final int size = 12;
     
     public RequirementsPrompt(final ConversationContext context) {
         super(context);
@@ -79,21 +79,22 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
         case 4:
         case 5:
         case 6:
-        case 9:
-            return ChatColor.BLUE;
         case 7:
+        case 10:
+            return ChatColor.BLUE;
+        case 8:
             if (plugin.getDependencies().getMcmmoClassic() != null) {
                 return ChatColor.BLUE;
             } else {
                 return ChatColor.GRAY;
             }
-        case 8:
+        case 9:
             if (plugin.getDependencies().getHeroes() != null) {
                 return ChatColor.BLUE;
             } else {
                 return ChatColor.GRAY;
             }
-        case 10:
+        case 11:
             if (context.getSessionData(CK.REQ_FAIL_MESSAGE) == null) {
                 if (!hasRequirement) {
                     return ChatColor.GRAY;
@@ -103,7 +104,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
             } else {
                 return ChatColor.BLUE;
             }
-        case 11:
+        case 12:
             return ChatColor.GREEN;
         default:
             return null;
@@ -124,32 +125,34 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
         case 3:
             return ChatColor.YELLOW + Lang.get("reqSetItem");
         case 4:
-            return ChatColor.YELLOW + Lang.get("reqSetPerms");
+            return ChatColor.YELLOW + Lang.get("reqSetExperience");
         case 5:
-            return ChatColor.YELLOW + Lang.get("reqSetQuest");
+            return ChatColor.YELLOW + Lang.get("reqSetPerms");
         case 6:
-            return ChatColor.YELLOW + Lang.get("reqSetQuestBlocks");
+            return ChatColor.YELLOW + Lang.get("reqSetQuest");
         case 7:
+            return ChatColor.YELLOW + Lang.get("reqSetQuestBlocks");
+        case 8:
             if (plugin.getDependencies().getMcmmoClassic() != null) {
                 return ChatColor.YELLOW + Lang.get("reqSetMcMMO");
             } else {
                 return ChatColor.GRAY + Lang.get("reqSetMcMMO");
             }
-        case 8:
+        case 9:
             if (plugin.getDependencies().getHeroes() != null) {
                 return ChatColor.YELLOW + Lang.get("reqSetHeroes");
             } else {
                 return ChatColor.GRAY + Lang.get("reqSetHeroes");
             }
-        case 9:
-            return ChatColor.DARK_PURPLE + Lang.get("reqSetCustom");
         case 10:
+            return ChatColor.DARK_PURPLE + Lang.get("reqSetCustom");
+        case 11:
             if (!hasRequirement) {
                 return ChatColor.GRAY + Lang.get("overrideCreateSet");
             } else {
                 return ChatColor.YELLOW + Lang.get("overrideCreateSet");
             }
-        case 11:
+        case 12:
             return ChatColor.YELLOW + Lang.get("done");
         default:
             return null;
@@ -196,6 +199,13 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 return text.toString();
             }
         case 4:
+            if (context.getSessionData(CK.REQ_EXP) == null) {
+                return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
+            } else {
+                return ChatColor.GRAY + "(" + ChatColor.AQUA + context.getSessionData(CK.REQ_EXP) + " "
+                        + Lang.get("points") + ChatColor.GRAY + ")";
+            }
+        case 5:
             if (context.getSessionData(CK.REQ_PERMISSION) == null) {
                 return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
             } else {
@@ -208,7 +218,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 }
                 return text.toString();
             }
-        case 5:
+        case 6:
             if (context.getSessionData(CK.REQ_QUEST) == null) {
                 return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
             } else {
@@ -224,7 +234,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 }
                 return text.toString();
             }
-        case 6:
+        case 7:
             if (context.getSessionData(CK.REQ_QUEST_BLOCK) == null) {
                 return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
             } else {
@@ -240,7 +250,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 }
                 return text.toString();
             }
-        case 7:
+        case 8:
             if (plugin.getDependencies().getMcmmoClassic() != null) {
                 if (context.getSessionData(CK.REQ_MCMMO_SKILLS) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
@@ -261,7 +271,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
             } else {
                 return ChatColor.GRAY + "(" + Lang.get("notInstalled") + ")";
             }
-        case 8:
+        case 9:
             if (plugin.getDependencies().getHeroes() != null) {
                 if (context.getSessionData(CK.REQ_HEROES_PRIMARY_CLASS) == null 
                         && context.getSessionData(CK.REQ_HEROES_SECONDARY_CLASS) == null) {
@@ -281,7 +291,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
             } else {
                 return ChatColor.GRAY + "(" + Lang.get("notInstalled") + ")";
             }
-        case 9:
+        case 10:
            if (context.getSessionData(CK.REQ_CUSTOM) == null) {
                 return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
            } else {
@@ -294,7 +304,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 }
                 return text.toString();
            }
-        case 10:
+        case 11:
             if (context.getSessionData(CK.REQ_FAIL_MESSAGE) == null) {
                 if (!hasRequirement) {
                     return ChatColor.GRAY + "(" + Lang.get("stageEditorOptional") + ")";
@@ -312,7 +322,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 }
                 return text.toString();
             }
-        case 11:
+        case 12:
             return "";
         default:
             return null;
@@ -369,26 +379,28 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
         case 3:
             return new RequirementsItemListPrompt(context);
         case 4:
-            return new RequirementsPermissionsPrompt(context);
+            return new RequirementsExperiencePrompt(context);
         case 5:
-            return new RequirementsQuestListPrompt(context, true);
+            return new RequirementsPermissionsPrompt(context);
         case 6:
-            return new RequirementsQuestListPrompt(context, false);
+            return new RequirementsQuestListPrompt(context, true);
         case 7:
+            return new RequirementsQuestListPrompt(context, false);
+        case 8:
             if (plugin.getDependencies().getMcmmoClassic() != null) {
                 return new RequirementsMcMMOListPrompt(context);
             } else {
                 return new RequirementsPrompt(context);
             }
-        case 8:
+        case 9:
             if (plugin.getDependencies().getHeroes() != null) {
                 return new RequirementsHeroesListPrompt(context);
             } else {
                 return new RequirementsPrompt(context);
             }
-        case 9:
-            return new CustomRequirementModulePrompt(context);
         case 10:
+            return new CustomRequirementModulePrompt(context);
+        case 11:
             if (hasRequirement) {
                 return new OverridePrompt.Builder()
                         .context(context)
@@ -399,7 +411,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("invalidOption"));
                 return new RequirementsPrompt(context);
             }
-        case 11:
+        case 12:
             return plugin.getQuestFactory().returnToMenu(context);
         default:
             return new RequirementsPrompt(context);
@@ -410,6 +422,7 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
         if (context.getSessionData(CK.REQ_MONEY) != null 
                 || context.getSessionData(CK.REQ_QUEST_POINTS) != null
                 || context.getSessionData(CK.REQ_ITEMS) != null
+                || context.getSessionData(CK.REQ_EXP) != null
                 || context.getSessionData(CK.REQ_PERMISSION) != null
                 || context.getSessionData(CK.REQ_QUEST) != null
                 || context.getSessionData(CK.REQ_QUEST_BLOCK) != null
@@ -772,6 +785,60 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 context.setSessionData(CK.REQ_ITEMS_REMOVE, booleans);
             }
             return new RequirementsItemListPrompt(context);
+        }
+    }
+
+    public class RequirementsExperiencePrompt extends QuestsEditorStringPrompt {
+
+        public RequirementsExperiencePrompt(final ConversationContext context) {
+            super(context);
+        }
+
+        @Override
+        public String getTitle(final ConversationContext context) {
+            return null;
+        }
+
+        @Override
+        public String getQueryText(final ConversationContext context) {
+            return Lang.get("reqExperiencePrompt");
+        }
+
+        @Override
+        public @NotNull String getPromptText(final @NotNull ConversationContext context) {
+            if (context.getPlugin() != null) {
+                final QuestsEditorPostOpenStringPromptEvent event
+                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
+                context.getPlugin().getServer().getPluginManager().callEvent(event);
+            }
+
+            return ChatColor.YELLOW + getQueryText(context);
+        }
+
+        @Override
+        public Prompt acceptInput(final @NotNull ConversationContext context, final String input) {
+            if (input == null) {
+                return null;
+            }
+            if (!input.equalsIgnoreCase(Lang.get("cmdCancel")) && !input.equalsIgnoreCase(Lang.get("cmdClear"))) {
+                try {
+                    final int i = Integer.parseInt(input);
+                    if (i > 0) {
+                        context.setSessionData(CK.REQ_EXP, i);
+                    } else {
+                        context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("inputPosNum"));
+                        return new RequirementsExperiencePrompt(context);
+                    }
+                } catch (final NumberFormatException e) {
+                    context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("reqNotANumber")
+                            .replace("<input>", input));
+                    return new RequirementsExperiencePrompt(context);
+                }
+            } else if (input.equalsIgnoreCase(Lang.get("cmdClear"))) {
+                context.setSessionData(CK.REQ_EXP, null);
+                return new RequirementsPrompt(context);
+            }
+            return new RequirementsPrompt(context);
         }
     }
 
@@ -1405,8 +1472,8 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                     text.append(ChatColor.DARK_AQUA).append(ChatColor.UNDERLINE)
                             .append("https://pikamug.gitbook.io/quests/casual/modules").append(ChatColor.RESET)
                             .append("\n");
-                    text.append(ChatColor.DARK_PURPLE).append("(").append(Lang.get("stageEditorNoModules"))
-                            .append(") ");
+                    text.append(ChatColor.RED).append("(").append(Lang.get("stageEditorNoModules")).append(")")
+                            .append("\n");
                 } else {
                     for (final String name : plugin.getCustomRequirements().stream()
                             .map(CustomRequirement::getModuleName).collect(Collectors.toCollection(TreeSet::new))) {
@@ -1418,12 +1485,12 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
             final TextComponent component = new TextComponent(getTitle(context) + "\n");
             component.setColor(net.md_5.bungee.api.ChatColor.LIGHT_PURPLE);
             final TextComponent line = new TextComponent("");
-            if (plugin.getCustomObjectives().isEmpty()) {
+            if (plugin.getCustomRequirements().isEmpty()) {
                 final TextComponent link = new TextComponent("https://pikamug.gitbook.io/quests/casual/modules\n");
                 link.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
                 link.setUnderlined(true);
                 line.addExtra(link);
-                line.addExtra(ChatColor.DARK_AQUA + "(" + Lang.get("stageEditorNoModules") + ") ");
+                line.addExtra(ChatColor.RED + "(" + Lang.get("stageEditorNoModules") + ")\n");
             } else {
                 for (final String name : plugin.getCustomRequirements().stream().map(CustomRequirement::getModuleName)
                         .collect(Collectors.toCollection(TreeSet::new))) {
@@ -1511,8 +1578,8 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
                 final StringBuilder text = new StringBuilder(ChatColor.LIGHT_PURPLE + getTitle(context) + "\n");
                 if (plugin.getCustomRequirements().isEmpty()) {
                     text.append(ChatColor.DARK_AQUA).append(ChatColor.UNDERLINE)
-                            .append("https://pikamug.gitbook.io/quests/casual/modules\n").append(ChatColor.DARK_PURPLE)
-                            .append("(").append(Lang.get("stageEditorNoModules")).append(") ");
+                            .append("https://pikamug.gitbook.io/quests/casual/modules\n");
+                    text.append(ChatColor.RED).append("(").append(Lang.get("stageEditorNoModules")).append(")\n");
                 } else {
                     for (final CustomRequirement cr : plugin.getCustomRequirements()) {
                         if (cr.getModuleName().equals(moduleName)) {
@@ -1525,12 +1592,12 @@ public class RequirementsPrompt extends QuestsEditorNumericPrompt {
             final TextComponent component = new TextComponent(getTitle(context) + "\n");
             component.setColor(net.md_5.bungee.api.ChatColor.LIGHT_PURPLE);
             final TextComponent line = new TextComponent("");
-            if (plugin.getCustomObjectives().isEmpty()) {
+            if (plugin.getCustomRequirements().isEmpty()) {
                 final TextComponent link = new TextComponent("https://pikamug.gitbook.io/quests/casual/modules\n");
                 link.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
                 link.setUnderlined(true);
                 line.addExtra(link);
-                line.addExtra(ChatColor.DARK_AQUA + "(" + Lang.get("stageEditorNoModules") + ") ");
+                line.addExtra(ChatColor.RED + "(" + Lang.get("stageEditorNoModules") + ")\n");
             } else {
                 for (final CustomRequirement co : plugin.getCustomRequirements()) {
                     if (co.getModuleName().equals(moduleName)) {

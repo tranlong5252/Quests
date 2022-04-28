@@ -170,7 +170,7 @@ public class Quest implements IQuest {
 
     @Override
     public NPC getNpcStart() {
-        if (CitizensAPI.getNPCRegistry().getByUniqueId(npcStart) != null) {
+        if (plugin.getDependencies().getCitizens() != null && CitizensAPI.getNPCRegistry().getByUniqueId(npcStart) != null) {
             return CitizensAPI.getNPCRegistry().getByUniqueId(npcStart);
         }
         return null;
@@ -339,12 +339,12 @@ public class Quest implements IQuest {
                     p.sendMessage(ChatColor.YELLOW + msg.toString());
                 } else if (!c.getNpcsWhileRiding().isEmpty()) {
                     final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorRideNPC"));
-                    for (final int i : c.getNpcsWhileRiding()) {
+                    for (final UUID u : c.getNpcsWhileRiding()) {
                         if (plugin.getDependencies().getCitizens() != null) {
                             msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(CitizensAPI.getNPCRegistry()
-                                    .getById(i).getName());
+                                    .getByUniqueId(u).getName());
                         } else {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(i);
+                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(u);
                         }
                     }
                     p.sendMessage(ChatColor.YELLOW + msg.toString());
@@ -429,14 +429,14 @@ public class Quest implements IQuest {
         final IQuest quest = this;
         Bukkit.getScheduler().runTask(plugin, () -> {
             Location targetLocation = null;
-            if (stage.getCitizensToInteract() != null && stage.getCitizensToInteract().size() > 0) {
-                targetLocation = plugin.getDependencies().getNPCLocation(stage.getCitizensToInteract().getFirst());
-            } else if (stage.getCitizensToKill() != null && stage.getCitizensToKill().size() > 0) {
-                targetLocation = plugin.getDependencies().getNPCLocation(stage.getCitizensToKill().getFirst());
+            if (stage.getNpcsToInteract() != null && stage.getNpcsToInteract().size() > 0) {
+                targetLocation = plugin.getDependencies().getNPCLocation(stage.getNpcsToInteract().getFirst());
+            } else if (stage.getNpcsToKill() != null && stage.getNpcsToKill().size() > 0) {
+                targetLocation = plugin.getDependencies().getNPCLocation(stage.getNpcsToKill().getFirst());
             } else if (stage.getLocationsToReach() != null && stage.getLocationsToReach().size() > 0) {
                 targetLocation = stage.getLocationsToReach().getFirst();
             } else if (stage.getItemDeliveryTargets() != null && stage.getItemDeliveryTargets().size() > 0) {
-                final NPC npc = plugin.getDependencies().getCitizens().getNPCRegistry().getById(stage
+                final NPC npc = plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(stage
                         .getItemDeliveryTargets().getFirst());
                 targetLocation = npc.getStoredLocation();
             } else if (stage.getPlayersToKill() != null && stage.getPlayersToKill() > 0) {

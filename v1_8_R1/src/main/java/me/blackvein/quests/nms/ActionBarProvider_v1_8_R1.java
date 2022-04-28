@@ -10,40 +10,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package me.blackvein.quests.quests;
+package me.blackvein.quests.nms;
 
-public interface Planner {
-    String getStart();
+import net.minecraft.server.v1_8_R1.ChatComponentText;
+import net.minecraft.server.v1_8_R1.PacketPlayOutChat;
+import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 
-    long getStartInMillis();
+public class ActionBarProvider_v1_8_R1 extends ActionBarProvider {
 
-    boolean hasStart();
+    @Override
+    void sendActionBarPacket(final Player player, final String message) {
+        final CraftPlayer craft = (CraftPlayer) player;
 
-    void setStart(final String start);
+        final PacketPlayOutChat packet = new PacketPlayOutChat(new ChatComponentText(message), (byte)2);
 
-    String getEnd();
-
-    long getEndInMillis();
-
-    boolean hasEnd();
-
-    void setEnd(final String end);
-
-    long getRepeat();
-
-    boolean hasRepeat();
-
-    void setRepeat(final long repeat);
-
-    long getCooldown();
-
-    boolean hasCooldown();
-
-    void setCooldown(final long cooldown);
-
-    boolean getOverride();
-
-    void setOverride(final boolean override);
-    boolean isResetOnNewDay();
-    void setResetOnNewDay(final boolean resetOnNewDay);
+        craft.getHandle().playerConnection.sendPacket(packet);
+    }
 }

@@ -55,13 +55,10 @@ public class SeparatedYamlStorage implements StorageImplementation {
 
     @Override
     public void init() throws Exception {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override
     public void close() {
-        // TODO Auto-generated method stub
     }
     
     @SuppressWarnings("deprecation")
@@ -317,14 +314,24 @@ public class SeparatedYamlStorage implements StorageImplementation {
                 }
                 if (questSec.contains("has-talked-to")) {
                     final List<Boolean> talkAmount = questSec.getBooleanList("has-talked-to");
-                    quester.getQuestData(quest).setCitizensInteracted(new LinkedList<>(talkAmount));
+                    quester.getQuestData(quest).setNpcsInteracted(new LinkedList<>(talkAmount));
                 }
-                if (questSec.contains("citizen-amounts-killed")) {
-                    final List<Integer> citizensAmounts = questSec.getIntegerList("citizen-amounts-killed");
+                if (questSec.contains("npc-killed-amounts")) {
+                    final List<Integer> npcAmounts = questSec.getIntegerList("npc-killed-amounts");
                     int index = 0;
-                    for (final int amt : citizensAmounts) {
-                        if (quester.getQuestData(quest).getCitizensNumKilled().size() > 0) {
-                            quester.getQuestData(quest).citizensNumKilled.set(index, amt);
+                    for (final int amt : npcAmounts) {
+                        if (quester.getQuestData(quest).getNpcsNumKilled().size() > 0) {
+                            quester.getQuestData(quest).npcsNumKilled.set(index, amt);
+                        }
+                        index++;
+                    }
+                } else if (questSec.contains("citizen-amounts-killed")) {
+                    // Legacy
+                    final List<Integer> npcAmounts = questSec.getIntegerList("citizen-amounts-killed");
+                    int index = 0;
+                    for (final int amt : npcAmounts) {
+                        if (quester.getQuestData(quest).getNpcsNumKilled().size() > 0) {
+                            quester.getQuestData(quest).npcsNumKilled.set(index, amt);
                         }
                         index++;
                     }
@@ -377,7 +384,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
     }
 
     @Override
-    public void saveQuester(final IQuester quester) throws Exception {
+    public void saveQuester(final IQuester quester) {
         final FileConfiguration data = quester.getBaseData();
         try {
             data.save(new File(directoryPath + File.separator + quester.getUUID() + ".yml"));
@@ -387,13 +394,13 @@ public class SeparatedYamlStorage implements StorageImplementation {
     }
 
     @Override
-    public void deleteQuester(final UUID uniqueId) throws Exception {
+    public void deleteQuester(final UUID uniqueId) {
         final File f = new File(directoryPath + File.separator + uniqueId + ".yml");
         f.delete();
     }
 
     @Override
-    public String getQuesterLastKnownName(final UUID uniqueId) throws Exception {
+    public String getQuesterLastKnownName(final UUID uniqueId) {
         IQuester quester = plugin.getQuester(uniqueId);
         if (quester != null) {
             quester.hardClear();
@@ -404,7 +411,7 @@ public class SeparatedYamlStorage implements StorageImplementation {
     }
     
     @Override
-    public Collection<UUID> getSavedUniqueIds() throws Exception {
+    public Collection<UUID> getSavedUniqueIds() {
         final Collection<UUID> ids = new ConcurrentSkipListSet<>();
         final File folder = new File(directoryPath);
         if (!folder.exists()) {
