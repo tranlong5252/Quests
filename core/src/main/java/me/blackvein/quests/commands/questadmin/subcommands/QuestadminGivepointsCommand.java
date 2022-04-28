@@ -67,6 +67,7 @@ public class QuestadminGivepointsCommand extends QuestsSubCommand {
     @Override
     public void execute(CommandSender cs, String[] args) {
         if (cs.hasPermission("quests.admin.*") || cs.hasPermission("quests.admin.givepoints")) {
+            if(args.length < 2) return;
             OfflinePlayer target = getOfflinePlayer(args[1]);
             if (target == null) {
                 try {
