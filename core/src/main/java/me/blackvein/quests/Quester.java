@@ -609,7 +609,7 @@ public class Quester implements IQuester {
             }
             return false;
         } else if (getCompletedQuestsTemp().contains(quest) && getRemainingCooldown(quest) > 0
-        && !isResetCooldown(quest) && !quest.getPlanner().getOverride()) {
+                && !isResetCooldown(quest) && !quest.getPlanner().getOverride()) {
             if (giveReason) {
                 final String msg = Lang.get(getPlayer(), "questTooEarly").replace("<quest>", ChatColor.AQUA
                         + quest.getName()+ ChatColor.YELLOW).replace("<time>", ChatColor.DARK_PURPLE
@@ -4529,7 +4529,7 @@ public class Quester implements IQuester {
                         start = true;
                 } else start = true;
                 if (start)
-                    TitleRepeater.startTask(plugin, getPlayer(), q.getTitle());
+                    TitleRepeater.startTask(plugin, getPlayer(), q, this);
             }
         } else {
             if (questTitleTasks.containsKey(q)) {

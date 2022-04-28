@@ -23,6 +23,7 @@ import me.blackvein.quests.util.ConfigUtil;
 import me.blackvein.quests.util.FakeConversable;
 import me.blackvein.quests.util.Lang;
 import me.blackvein.quests.util.MiscUtil;
+import me.blackvein.quests.util.Title;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;

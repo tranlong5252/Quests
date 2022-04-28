@@ -65,10 +65,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -371,7 +368,7 @@ public class PlayerListener implements Listener {
                                                 && plugin.getSettings().getMaxQuests() > 0) {
                                             String msg = Lang.get(player, "questMaxAllowed");
                                             StringJoiner joiner = new StringJoiner(", ");
-                                            quester.getCurrentQuests().keySet().forEach(quest -> joiner.add(quest.getName()));
+                                            quester.getCurrentQuestsTemp().keySet().forEach(quest -> joiner.add(quest.getName()));
                                             msg = msg
                                                     .replace("<current>", joiner.toString())
                                                     .replace("<number>", String
