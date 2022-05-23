@@ -70,6 +70,10 @@ public class QuestadminSetstageCommand extends QuestsSubCommand {
 
     @Override
     public void execute(CommandSender cs, String[] args) {
+        if (args.length == 1) {
+            // Shows command usage
+            return;
+        }
         if (cs.hasPermission("quests.admin.*") || cs.hasPermission("quests.admin.setstage")) {
             if(args.length < 2) return;
             OfflinePlayer target = getOfflinePlayer(args[1]);
@@ -82,14 +86,10 @@ public class QuestadminSetstageCommand extends QuestsSubCommand {
                 }
             }
             int stage = -1;
-            if (args.length > 3) {
-                try {
-                    stage = Integer.parseInt(args[args.length - 1]);
-                } catch (final NumberFormatException e) {
-                    cs.sendMessage(ChatColor.YELLOW + Lang.get("inputNum"));
-                }
-            } else {
-                cs.sendMessage(ChatColor.YELLOW + Lang.get("COMMAND_QUESTADMIN_SETSTAGE_USAGE"));
+            try {
+                stage = Integer.parseInt(args[args.length - 1]);
+            } catch (final NumberFormatException e) {
+                cs.sendMessage(ChatColor.YELLOW + Lang.get("inputNum"));
                 return;
             }
             final IQuester quester = plugin.getQuester(target.getUniqueId());

@@ -174,7 +174,7 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
                 context.setSessionData(CK.REQ_QUEST_POINTS, requirements.getQuestPoints());
             }
             if (requirements.getExp() != 0) {
-                context.setSessionData(CK.REW_EXP, requirements.getExp());
+                context.setSessionData(CK.REQ_EXP, requirements.getExp());
             }
             if (!requirements.getItems().isEmpty()) {
                 context.setSessionData(CK.REQ_ITEMS, requirements.getItems());
@@ -284,6 +284,7 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
             context.setSessionData(CK.OPT_SHARE_SAME_QUEST_ONLY, opt.canShareSameQuestOnly());
             context.setSessionData(CK.OPT_SHARE_DISTANCE, opt.getShareDistance());
             context.setSessionData(CK.OPT_HANDLE_OFFLINE_PLAYERS, opt.canHandleOfflinePlayers());
+            context.setSessionData(CK.OPT_IGNORE_BLOCK_REPLACE, opt.canIgnoreBlockReplace());
             // Stages (Objectives)
             int index = 1;
             for (final IStage stage : q.getStages()) {
@@ -936,6 +937,8 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
                 ? context.getSessionData(CK.OPT_SHARE_DISTANCE) : null);
         opts.set("handle-offline-players", context.getSessionData(CK.OPT_HANDLE_OFFLINE_PLAYERS) != null
                 ? context.getSessionData(CK.OPT_HANDLE_OFFLINE_PLAYERS) : null);
+        opts.set("ignore-block-replace", context.getSessionData(CK.OPT_IGNORE_BLOCK_REPLACE) != null
+                ? context.getSessionData(CK.OPT_IGNORE_BLOCK_REPLACE) : null);
         if (opts.getKeys(false).isEmpty()) {
             section.set("options", null);
         }

@@ -1152,8 +1152,7 @@ public class Quest implements IQuest {
             }
         }
         final String[] messages = {
-                ChatColor.GOLD + Lang.get(player, "questCommandTitle").replace("<quest>", name),
-                ChatColor.RED + Lang.get(player, "questFailed")
+                ChatColor.RED + Lang.get(player, "questFailed").replace("<quest>", name)
         };
         quester.quitQuest(this, messages);
         if (player.isOnline()) {

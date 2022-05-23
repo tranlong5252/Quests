@@ -147,6 +147,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     private final Collection<IQuest> quests = new ConcurrentSkipListSet<>();
     private Collection<IAction> actions = new ConcurrentSkipListSet<>();
     private Collection<ICondition> conditions = new ConcurrentSkipListSet<>();
+    private Collection<UUID> questNpcUuids = new ConcurrentSkipListSet<>();
     private TabExecutor cmdExecutor;
     private ConversationFactory conversationFactory;
     private ConversationFactory npcConversationFactory;
@@ -528,6 +529,24 @@ public class Quests extends JavaPlugin implements QuestsAPI {
      */
     public void setOfflineQuesters(final Collection<IQuester> questers) {
         this.questers = new ConcurrentSkipListSet<>(questers);
+    }
+
+    /**
+     * Get every NPC UUID which sees use a quest giver, talk target, or kill target
+     *
+     * @return a collection of all UUIDs
+     */
+    public Collection<UUID> getQuestNpcUuids() {
+        return questNpcUuids;
+    }
+
+    /**
+     * Set every NPC UUID which sees use a quest giver, talk target, or kill target
+     *
+     * @param questNpcUuids a collection of UUIDs
+     */
+    public void setQuestNpcUuids(final Collection<UUID> questNpcUuids) {
+        this.questNpcUuids = new ConcurrentSkipListSet<>(questNpcUuids);
     }
 
     public CommandExecutor getCommandExecutor() {
@@ -1541,7 +1560,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         for (int i = 0 ; i < stage.getLocationsToReach().size(); i++) {
             if (i < data.locationsReached.size()) {
                 final ChatColor color = !data.locationsReached.get(i) ? ChatColor.GREEN : ChatColor.GRAY;
-                String message = color + Lang.get(quester.getPlayer(), "goTo");
+                String message = color + "- " + Lang.get(quester.getPlayer(), "goTo");
                 message = message.replace("<location>", stage.getLocationNames().get(i));
                 quester.sendMessage(message);
             }
@@ -1822,6 +1841,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                     + ".npc-giver-uuid")));
             if (CitizensAPI.getNPCRegistry().getByUniqueId(uuid) != null) {
                 quest.setNpcStart(CitizensAPI.getNPCRegistry().getByUniqueId(uuid));
+                questNpcUuids.add(uuid);
             } else {
                 throw new QuestFormatException("npc-giver-uuid has invalid NPC UUID " + uuid, questKey);
             }
@@ -1829,7 +1849,9 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             // Legacy
             final int id = config.getInt("quests." + questKey + ".npc-giver-id");
             if (CitizensAPI.getNPCRegistry().getById(id) != null) {
-                quest.setNpcStart(CitizensAPI.getNPCRegistry().getById(id));
+                final NPC npc = CitizensAPI.getNPCRegistry().getById(id);
+                quest.setNpcStart(npc);
+                questNpcUuids.add(npc.getUniqueId());
             } else {
                 throw new QuestFormatException("npc-giver-id has invalid NPC ID " + id, questKey);
             }
@@ -2406,6 +2428,9 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         if (config.contains("quests." + questKey + ".options.handle-offline-players")) {
             opts.setHandleOfflinePlayers(config.getBoolean("quests." + questKey + ".options.handle-offline-players"));
         }
+        if (config.contains("quests." + questKey + ".options.ignore-block-replace")) {
+            opts.setIgnoreBlockReplace(config.getBoolean("quests." + questKey + ".options.ignore-block-replace"));
+        }
     }
 
     @SuppressWarnings({ "unchecked", "unused", "deprecation" })
@@ -2923,9 +2948,10 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                     for (final String s : npcUuidsToTalkTo) {
                         final UUID uuid = UUID.fromString(s);
                         if (getDependencies().getCitizens() != null) {
-                            NPC npc = CitizensAPI.getNPCRegistry().getByUniqueId(uuid);
+                            final NPC npc = CitizensAPI.getNPCRegistry().getByUniqueId(uuid);
                             if (npc != null) {
                                 oStage.addNpcToInteract(uuid);
+                                questNpcUuids.add(uuid);
                             } else {
                                 throw new StageFormatException("npc-uuids-to-talk-to has invalid NPC UUID of "
                                         + s, quest, stageNum);
@@ -2950,6 +2976,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                             if (npc != null) {
                                 final UUID npcUuid = npc.getUniqueId();
                                 oStage.addNpcToInteract(npcUuid);
+                                questNpcUuids.add(npcUuid);
                             } else {
                                 throw new StageFormatException("npc-ids-to-talk-to has invalid NPC ID of " + i, quest, 
                                         stageNum);
@@ -3075,6 +3102,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                                     if (npcAmountsToKill.get(npcUuidsToKill.indexOf(s)) > 0) {
                                         oStage.addNpcToKill(npcUuid);
                                         oStage.addNpcNumToKill(npcAmountsToKill.get(npcUuidsToKill.indexOf(s)));
+                                        questNpcUuids.add(npcUuid);
                                     } else {
                                         throw new StageFormatException("npc-kill-amounts is not a positive number", 
                                                 quest, stageNum);
@@ -3110,6 +3138,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                                         final UUID npcUuid = npc.getUniqueId();
                                         oStage.addNpcToKill(npcUuid);
                                         oStage.addNpcNumToKill(npcAmountsToKill.get(npcIdsToKill.indexOf(i)));
+                                        questNpcUuids.add(npcUuid);
                                     } else {
                                         throw new StageFormatException("npc-kill-amounts is not a positive number",
                                                 quest, stageNum);

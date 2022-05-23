@@ -69,6 +69,10 @@ public class QuestadminRemoveCommand extends QuestsSubCommand {
 
     @Override
     public void execute(CommandSender cs, String[] args) {
+        if (args.length == 1) {
+            // Shows command usage
+            return;
+        }
         if (cs.hasPermission("quests.admin.*") && cs.hasPermission("quests.admin.remove")) {
             if(args.length < 2) return;
             OfflinePlayer target = getOfflinePlayer(args[1]);

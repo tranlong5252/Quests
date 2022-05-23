@@ -330,7 +330,7 @@ public class OptionsPrompt extends QuestsEditorNumericPrompt {
             text += "\n" + ChatColor.GRAY + "\u2515 " + ChatColor.GOLD + "1" + ChatColor.RESET + " = " + ChatColor.GRAY
                     + Lang.get("everything");
             text += "\n" + ChatColor.GRAY + "\u2515 " + ChatColor.GOLD + "2" + ChatColor.RESET + " = " + ChatColor.GRAY
-                    + Lang.get("objectives");;
+                    + Lang.get("objectives");
             text += "\n" + ChatColor.GRAY + "\u2515 " + ChatColor.GOLD + "3" + ChatColor.RESET + " = " + ChatColor.GRAY
                     + Lang.get("stageEditorStages");
             text += "\n" + ChatColor.GRAY + "\u2515 " + ChatColor.GOLD + "4" + ChatColor.RESET + " = " + ChatColor.GRAY
@@ -411,7 +411,7 @@ public class OptionsPrompt extends QuestsEditorNumericPrompt {
             super(context);
         }
 
-        private final int size = 4;
+        private final int size = 5;
         
         @Override
         public int getSize() {
@@ -429,8 +429,9 @@ public class OptionsPrompt extends QuestsEditorNumericPrompt {
             case 1:
             case 2:
             case 3:
-                return ChatColor.BLUE;
             case 4:
+                return ChatColor.BLUE;
+            case 5:
                 return ChatColor.GREEN;
             default:
                 return null;
@@ -447,6 +448,8 @@ public class OptionsPrompt extends QuestsEditorNumericPrompt {
             case 3:
                 return ChatColor.YELLOW + Lang.get("optIgnoreSilkTouch");
             case 4:
+                return ChatColor.YELLOW + Lang.get("optIgnoreBlockReplace");
+            case 5:
                 return ChatColor.YELLOW + Lang.get("done");
             default:
                 return null;
@@ -460,39 +463,43 @@ public class OptionsPrompt extends QuestsEditorNumericPrompt {
                 final Boolean commandsOpt = (Boolean) context.getSessionData(CK.OPT_ALLOW_COMMANDS);
                 if (commandsOpt == null) {
                     final boolean defaultOpt = new BukkitOptions().canAllowCommands();
-                    return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN 
-                        + Lang.get(String.valueOf(defaultOpt)) : ChatColor.RED 
-                        + Lang.get(String.valueOf(defaultOpt))) + ChatColor.GRAY + ")";
+                    return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
                 } else {
-                    return ChatColor.GRAY + "(" + (commandsOpt ? ChatColor.GREEN
-                            + Lang.get(String.valueOf(commandsOpt)) : ChatColor.RED
-                            + Lang.get(String.valueOf(commandsOpt))) + ChatColor.GRAY + ")";
+                    return ChatColor.GRAY + "(" + (commandsOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
                 }
             case 2:
                 final Boolean quittingOpt = (Boolean) context.getSessionData(CK.OPT_ALLOW_QUITTING);
                 if (quittingOpt == null) {
                     final boolean defaultOpt = new BukkitOptions().canAllowQuitting();
-                    return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN 
-                            + Lang.get(String.valueOf(defaultOpt)) : ChatColor.RED 
-                            + Lang.get(String.valueOf(defaultOpt))) + ChatColor.GRAY + ")";
+                    return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
                 } else {
-                    return ChatColor.GRAY + "(" + (quittingOpt ? ChatColor.GREEN
-                            + Lang.get(String.valueOf(quittingOpt)) : ChatColor.RED 
-                            + Lang.get(String.valueOf(quittingOpt))) + ChatColor.GRAY + ")";
+                    return ChatColor.GRAY + "(" + (quittingOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
                 }
             case 3:
                 final Boolean ignoreOpt = (Boolean) context.getSessionData(CK.OPT_IGNORE_SILK_TOUCH);
                 if (ignoreOpt == null) {
                     final boolean defaultOpt = new BukkitOptions().canIgnoreSilkTouch();
-                    return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN 
-                            + Lang.get(String.valueOf(defaultOpt)) : ChatColor.RED 
-                            + Lang.get(String.valueOf(defaultOpt))) + ChatColor.GRAY + ")";
+                    return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
                 } else {
-                    return ChatColor.GRAY + "(" + (ignoreOpt ? ChatColor.GREEN
-                            + Lang.get(String.valueOf(ignoreOpt)) : ChatColor.RED
-                            + Lang.get(String.valueOf(ignoreOpt))) + ChatColor.GRAY + ")";
+                    return ChatColor.GRAY + "(" + (ignoreOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
                 }
             case 4:
+                final Boolean ignoreBlockReplaceOpt = (Boolean) context.getSessionData(CK.OPT_IGNORE_BLOCK_REPLACE);
+                if (ignoreBlockReplaceOpt == null) {
+                    final boolean defaultOpt = new BukkitOptions().canIgnoreBlockReplace();
+                    return ChatColor.GRAY + "(" + (defaultOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
+                } else {
+                    return ChatColor.GRAY + "(" + (ignoreBlockReplaceOpt ? ChatColor.GREEN + Lang.get("true")
+                            : ChatColor.RED + Lang.get("false")) + ChatColor.GRAY + ")";
+                }
+            case 5:
                 return "";
             default:
                 return null;
@@ -532,6 +539,10 @@ public class OptionsPrompt extends QuestsEditorNumericPrompt {
                 tempPrompt = new OptionsGeneralPrompt(context);
                 return new OptionsTrueFalsePrompt(context);
             case 4:
+                tempKey = CK.OPT_IGNORE_BLOCK_REPLACE;
+                tempPrompt = new OptionsGeneralPrompt(context);
+                return new OptionsTrueFalsePrompt(context);
+            case 5:
                 tempKey = null;
                 tempPrompt = null;
                 try {
