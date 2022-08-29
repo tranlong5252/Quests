@@ -13,7 +13,6 @@
 package me.blackvein.quests;
 
 import me.blackvein.quests.config.ISettings;
-import me.blackvein.quests.util.Lang;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
@@ -40,6 +39,8 @@ public class Settings implements ISettings {
     private boolean giveJournalItem = false;
     private boolean ignoreLockedQuests = false;
     private int killDelay = 0;
+    private String language = "en-US";
+    private boolean languageOverrideClient;
     private int maxQuests = 0;
     private boolean npcEffects = true;
     private String effect = "note";
@@ -156,6 +157,18 @@ public class Settings implements ISettings {
     public void setKillDelay(final int killDelay) {
         this.killDelay = killDelay;
     }
+    public String getLanguage() {
+        return language;
+    }
+    public void setLanguage(final String language) {
+        this.language = language;
+    }
+    public boolean canLanguageOverrideClient() {
+        return languageOverrideClient;
+    }
+    public void setLanguageOverrideClient(final boolean languageOverrideClient) {
+        this.languageOverrideClient = languageOverrideClient;
+    }
     public int getMaxQuests() {
         return maxQuests;
     }
@@ -258,10 +271,11 @@ public class Settings implements ISettings {
         killDelay = config.getInt("kill-delay", 600);
         if (Objects.requireNonNull(config.getString("language")).equalsIgnoreCase("en")) {
             //Legacy
-            Lang.setISO("en-US");
+            language = "en-US";
         } else {
-            Lang.setISO(config.getString("language", "en-US"));
+            language = config.getString("language", "en-US");
         }
+        languageOverrideClient = config.getBoolean("language-override-client", false);
         maxQuests = config.getInt("max-quests", maxQuests);
         npcEffects = config.getBoolean("npc-effects.enabled", true);
         effect = config.getString("npc-effects.new-quest", "note");

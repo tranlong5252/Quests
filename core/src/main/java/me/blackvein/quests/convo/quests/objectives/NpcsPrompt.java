@@ -90,7 +90,7 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
     public String getAdditionalText(final ConversationContext context, final int number) {
         switch(number) {
         case 1:
-            if (plugin.getDependencies().getCitizens() != null) {
+            if (plugin.getDependencies().getCitizens() != null || plugin.getDependencies().getZnpcs() != null) {
                 if (context.getSessionData(pref + CK.S_DELIVERY_ITEMS) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
@@ -105,8 +105,7 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                                     .append(ItemUtil.getName(items.get(i))).append(ChatColor.GRAY).append(" x ")
                                     .append(ChatColor.AQUA).append(items.get(i).getAmount()).append(ChatColor.GRAY)
                                     .append(" ").append(Lang.get("to")).append(" ").append(ChatColor.BLUE)
-                                    .append(plugin.getDependencies().getCitizens().getNPCRegistry()
-                                    .getByUniqueId(UUID.fromString(npcs.get(i))).getName());
+                                    .append(plugin.getDependencies().getNPCName(UUID.fromString(npcs.get(i))));
                         }
                     }
                     return text.toString();
@@ -115,7 +114,7 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                 return ChatColor.GRAY + " (" + Lang.get("notInstalled") + ")";
             }
         case 2:
-            if (plugin.getDependencies().getCitizens() != null) {
+            if (plugin.getDependencies().getCitizens() != null || plugin.getDependencies().getZnpcs() != null) {
                 if (context.getSessionData(pref + CK.S_NPCS_TO_TALK_TO) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
@@ -125,8 +124,7 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                     if (npcs != null) {
                         for (final String npc : npcs) {
                             text.append("\n").append(ChatColor.GRAY).append("     - ").append(ChatColor.BLUE)
-                                    .append(plugin.getDependencies().getCitizens().getNPCRegistry()
-                                    .getByUniqueId(UUID.fromString(npc)).getName());
+                                    .append(plugin.getDependencies().getNPCName(UUID.fromString(npc)));
                         }
                     }
                     return text.toString();
@@ -135,7 +133,7 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                 return ChatColor.GRAY + "(" + Lang.get("notInstalled") + ")";
             }
         case 3:
-            if (plugin.getDependencies().getCitizens() != null) {
+            if (plugin.getDependencies().getCitizens() != null || plugin.getDependencies().getZnpcs() != null) {
                 if (context.getSessionData(pref + CK.S_NPCS_TO_KILL) == null) {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
@@ -147,9 +145,8 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                     if (npcs != null && amounts != null) {
                         for (int i = 0; i < npcs.size(); i++) {
                             text.append("\n").append(ChatColor.GRAY).append("     - ").append(ChatColor.BLUE)
-                                    .append(plugin.getDependencies().getCitizens().getNPCRegistry()
-                                    .getByUniqueId(UUID.fromString(npcs.get(i))).getName()).append(ChatColor.GRAY)
-                                    .append(" x ").append(ChatColor.AQUA).append(amounts.get(i));
+                                    .append(plugin.getDependencies().getNPCName(UUID.fromString(npcs.get(i))))
+                                    .append(ChatColor.GRAY).append(" x ").append(ChatColor.AQUA).append(amounts.get(i));
                         }
                     }
                     return text.toString();
@@ -187,21 +184,21 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
     protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
         switch(input.intValue()) {
         case 1:
-            if (plugin.getDependencies().getCitizens() != null) {
+            if (plugin.getDependencies().getCitizens() != null || plugin.getDependencies().getZnpcs() != null) {
                 return new NpcsDeliveryListPrompt(context);
             } else {
                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNoCitizens"));
                 return new StageMainPrompt(stageNum, context);
             }
         case 2:
-            if (plugin.getDependencies().getCitizens() != null) {
+            if (plugin.getDependencies().getCitizens() != null || plugin.getDependencies().getZnpcs() != null) {
                 return new NpcsIdsToTalkToPrompt(context);
             } else {
                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNoCitizens"));
                 return new StageMainPrompt(stageNum, context);
             }
         case 3:
-            if (plugin.getDependencies().getCitizens() != null) {
+            if (plugin.getDependencies().getCitizens() != null || plugin.getDependencies().getZnpcs() != null) {
                 return new NpcsKillListPrompt(context);
             } else {
                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNoCitizens"));
@@ -300,9 +297,8 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                         for (final String s : deliveryNpcs) {
                             final UUID uuid = UUID.fromString(s);
                             text.append("\n").append(ChatColor.GRAY).append("     - ").append(ChatColor.AQUA)
-                                    .append(plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(uuid)
-                                    .getName()).append(ChatColor.GRAY).append(" (").append(ChatColor.BLUE).append(s)
-                                    .append(ChatColor.GRAY).append(")");
+                                    .append(plugin.getDependencies().getNPCName(uuid)).append(ChatColor.GRAY)
+                                    .append(" (").append(ChatColor.BLUE).append(s).append(ChatColor.GRAY).append(")");
                         }
                     }
                     return text.toString();
@@ -460,12 +456,11 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                 for (final String s : args) {
                     try {
                         final UUID uuid = UUID.fromString(s);
-                        if (plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(uuid) != null
-                                && npcs != null) {
+                        if (plugin.getDependencies().getNPCName(uuid) != null && npcs != null) {
                             npcs.add(uuid.toString());
                         } else {
-                            context.getForWhom().sendRawMessage(ChatColor.LIGHT_PURPLE + "" + uuid + ChatColor.RED + " "
-                                    + Lang.get("stageEditorInvalidNPC"));
+                            context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidNPC")
+                                    .replace("<input>", s));
                             return new NpcDeliveryNpcsPrompt(context);
                         }
                     } catch (final IllegalArgumentException e) {
@@ -579,12 +574,11 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                 for (final String s : args) {
                     try {
                         final UUID uuid = UUID.fromString(s);
-                        if (plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(uuid) != null
-                                && npcs != null) {
+                        if (plugin.getDependencies().getNPCName(uuid) != null && npcs != null) {
                             npcs.add(uuid.toString());
                         } else {
-                            context.getForWhom().sendRawMessage(ChatColor.LIGHT_PURPLE + "" + uuid + ChatColor.RED + " "
-                                    + Lang.get("stageEditorInvalidNPC"));
+                            context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidNPC")
+                                    .replace("<input>", s));
                             return new NpcsIdsToTalkToPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
@@ -660,7 +654,7 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
         public String getAdditionalText(final ConversationContext context, final int number) {
             switch(number) {
             case 1:
-                if (plugin.getDependencies().getCitizens() != null) {
+                if (plugin.getDependencies().getCitizens() != null || plugin.getDependencies().getZnpcs() != null) {
                     if (context.getSessionData(pref + CK.S_NPCS_TO_KILL) == null) {
                         return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                     } else {
@@ -669,9 +663,9 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                         if (npcsToKill != null) {
                             for (final String s : npcsToKill) {
                                 text.append("\n").append(ChatColor.GRAY).append("     - ").append(ChatColor.BLUE)
-                                        .append(plugin.getDependencies().getCitizens().getNPCRegistry()
-                                        .getByUniqueId(UUID.fromString(s)).getName()).append(ChatColor.GRAY).append(" (")
-                                        .append(ChatColor.AQUA).append(s).append(ChatColor.GRAY).append(")");
+                                        .append(plugin.getDependencies().getNPCName(UUID.fromString(s)))
+                                        .append(ChatColor.GRAY).append(" (").append(ChatColor.AQUA).append(s)
+                                        .append(ChatColor.GRAY).append(")");
                             }
                         }
                         return text.toString();
@@ -806,12 +800,11 @@ public class NpcsPrompt extends QuestsEditorNumericPrompt {
                 for (final String s : args) {
                     try {
                         final UUID uuid = UUID.fromString(s);
-                        if (plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(uuid) != null
-                                && npcs != null) {
+                        if (plugin.getDependencies().getNPCName(uuid) != null && npcs != null) {
                             npcs.add(uuid.toString());
                         } else {
-                            context.getForWhom().sendRawMessage(ChatColor.LIGHT_PURPLE + "" + uuid + ChatColor.RED + " "
-                                    + Lang.get("stageEditorInvalidNPC"));
+                            context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidNPC")
+                                    .replace("<input>", s));
                             return new NpcIdsToKillPrompt(context);
                         }
                     } catch (final IllegalArgumentException e) {

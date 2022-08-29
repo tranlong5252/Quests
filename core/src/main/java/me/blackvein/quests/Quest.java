@@ -20,6 +20,7 @@ import com.codisimus.plugins.phatloots.loot.LootBundle;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.player.UserManager;
 import com.herocraftonline.heroes.characters.Hero;
+import io.github.znetworkw.znpcservers.npc.NPC;
 import lombok.Getter;
 import lombok.Setter;
 import me.blackvein.quests.actions.Action;
@@ -33,8 +34,6 @@ import me.blackvein.quests.player.IQuester;
 import me.blackvein.quests.quests.*;
 import me.blackvein.quests.util.*;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -45,12 +44,14 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -169,16 +170,18 @@ public class Quest implements IQuest {
     }
 
     @Override
-    public NPC getNpcStart() {
-        if (plugin.getDependencies().getCitizens() != null && CitizensAPI.getNPCRegistry().getByUniqueId(npcStart) != null) {
-            return CitizensAPI.getNPCRegistry().getByUniqueId(npcStart);
-        }
-        return null;
+    public UUID getNpcStart() {
+        return npcStart;
     }
 
     @Override
-    public void setNpcStart(final NPC npcStart) {
-        this.npcStart = npcStart.getUniqueId();
+    public void setNpcStart(final UUID npcStart) {
+        this.npcStart = npcStart;
+    }
+
+    @Override
+    public String getNpcStartName() {
+        return plugin.getDependencies().getNPCName(getNpcStart());
     }
 
     @Override
@@ -250,7 +253,7 @@ public class Quest implements IQuest {
             }
             if (quester.getCurrentQuestsTemp().get(this) == (orderedStages.size() - 1)) {
                 if (currentStage.getScript() != null) {
-                    plugin.getDenizenTrigger().runDenizenScript(currentStage.getScript(), quester);
+                    plugin.getDenizenTrigger().runDenizenScript(currentStage.getScript(), quester, null);
                 }
                 completeQuest(quester);
             } else {
@@ -307,7 +310,7 @@ public class Quest implements IQuest {
         quester.hardStagePut(this, stage);
         quester.addEmptiesFor(this, stage);
         if (currentStage.getScript() != null) {
-            plugin.getDenizenTrigger().runDenizenScript(currentStage.getScript(), quester);
+            plugin.getDenizenTrigger().runDenizenScript(currentStage.getScript(), quester, null);
         }
         if (nextStage.getStartAction() != null) {
             nextStage.getStartAction().fire(quester, this);
@@ -341,8 +344,8 @@ public class Quest implements IQuest {
                     final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorRideNPC"));
                     for (final UUID u : c.getNpcsWhileRiding()) {
                         if (plugin.getDependencies().getCitizens() != null) {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(CitizensAPI.getNPCRegistry()
-                                    .getByUniqueId(u).getName());
+                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(plugin.getDependencies()
+                                    .getCitizens().getNPCRegistry().getByUniqueId(u).getName());
                         } else {
                             msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(u);
                         }
@@ -436,9 +439,19 @@ public class Quest implements IQuest {
             } else if (stage.getLocationsToReach() != null && stage.getLocationsToReach().size() > 0) {
                 targetLocation = stage.getLocationsToReach().getFirst();
             } else if (stage.getItemDeliveryTargets() != null && stage.getItemDeliveryTargets().size() > 0) {
-                final NPC npc = plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(stage
-                        .getItemDeliveryTargets().getFirst());
-                targetLocation = npc.getStoredLocation();
+                final UUID uuid = stage.getItemDeliveryTargets().getFirst();
+                if (plugin.getDependencies().getCitizens() != null
+                        && plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(uuid) != null) {
+                    targetLocation = plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(uuid)
+                            .getStoredLocation();
+                }
+                if (plugin.getDependencies().getZnpcs() != null
+                        && plugin.getDependencies().getZnpcsUuids().contains(uuid)) {
+                    final Optional<NPC> opt = NPC.all().stream().filter(npc1 -> npc1.getUUID().equals(uuid)).findAny();
+                    if (opt.isPresent()) {
+                        targetLocation = opt.get().getLocation();
+                    }
+                }
             } else if (stage.getPlayersToKill() != null && stage.getPlayersToKill() > 0) {
                 if (quester.getPlayer() == null) {
                     return;
@@ -558,11 +571,47 @@ public class Quest implements IQuest {
         });
         return true;
     }
-    
+
+    /**
+     * Format GUI display item with applicable display name, lore, and item flags
+     *
+     * @param quester The quester to prepare for
+     * @return formatted item
+     */
+    public ItemStack prepareDisplay(final Quester quester) {
+        final ItemStack display = getGUIDisplay().clone();
+        final ItemMeta meta = display.getItemMeta();
+        if (meta != null) {
+            final Player player = quester.getPlayer();
+            if (quester.getCompletedQuests().contains(this)) {
+                meta.setDisplayName(ChatColor.DARK_PURPLE + ConfigUtil.parseString(getName()
+                        + " " + ChatColor.GREEN + Lang.get(player, "redoCompleted"), getNpcStart()));
+            } else {
+                meta.setDisplayName(ChatColor.DARK_PURPLE + ConfigUtil.parseString(getName(), getNpcStart()));
+            }
+            if (!meta.hasLore()) {
+                final LinkedList<String> lines;
+                String desc = getDescription();
+                if (plugin.getDependencies().getPlaceholderApi() != null) {
+                    desc = PlaceholderAPI.setPlaceholders(player, desc);
+                }
+                if (desc.equals(ChatColor.stripColor(desc))) {
+                    lines = MiscUtil.makeLines(desc, " ", 40, ChatColor.DARK_GREEN);
+                } else {
+                    lines = MiscUtil.makeLines(desc, " ", 40, null);
+                }
+                meta.setLore(lines);
+            }
+            meta.addItemFlags(ItemFlag.values());
+            display.setItemMeta(meta);
+        }
+        return display;
+    }
+
     /**
      * Check that a quester has met all Requirements to accept this quest<p>
      * 
-     * Item, permission and custom Requirements are only checked for online players
+     * Item, experience, permission and custom Requirements are only checked for online players
      * 
      * @param quester The quester to check
      * @return true if all Requirements have been met
@@ -574,7 +623,7 @@ public class Quest implements IQuest {
     /**
      * Check that a player has met all Requirements to accept this quest<p>
      * 
-     * Item, permission and custom Requirements are only checked for online players
+     * Item, experience, permission and custom Requirements are only checked for online players
      * 
      * @param player The player to check
      * @return true if all Requirements have been met
@@ -617,6 +666,9 @@ public class Quest implements IQuest {
         }
         if (player.isOnline()) {
             final Player p = (Player)player;
+            if (p.getTotalExperience() < requirements.getExp()) {
+                return false;
+            }
             final Inventory fakeInv = Bukkit.createInventory(null, InventoryType.PLAYER);
             fakeInv.setContents(p.getInventory().getContents().clone());
             for (final ItemStack is : requirements.getItems()) {
