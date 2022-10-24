@@ -41,7 +41,6 @@ import me.blackvein.quests.quests.IStage;
 import me.blackvein.quests.quests.Objective;
 import me.blackvein.quests.quests.Planner;
 import me.blackvein.quests.quests.Requirements;
-import me.blackvein.quests.storage.Storage;
 import me.blackvein.quests.tasks.StageTimer;
 import me.blackvein.quests.tasks.TitleRepeater;
 import me.blackvein.quests.util.ConfigUtil;
@@ -70,10 +69,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Crops;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
@@ -4224,8 +4221,7 @@ public class Quester implements IQuester {
      */
     public boolean saveData() {
         try {
-            final Storage storage = plugin.getStorage();
-            storage.saveQuester(this);
+            plugin.getStorage().saveQuester(this).get();
         } catch (final Exception e) {
             return false;
         }
