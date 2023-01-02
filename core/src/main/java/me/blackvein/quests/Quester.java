@@ -536,8 +536,8 @@ public class Quester implements IQuester {
             if (getPlayer() != null) {
                 if (!getPlayer().isConversing()) {
                     setQuestIdToTake(quest.getId());
-                    final String s = ChatColor.GOLD + Lang.get("questObjectivesTitle")
-                            .replace("<quest>", quest.getName()) + "\n" + ChatColor.RESET + quest.getDescription();
+                    final String s = ChatColor.GOLD + ConfigUtil.parseString(Lang.get("questObjectivesTitle")
+                            + "\n" + ChatColor.RESET + quest.getDescription(), quest, getPlayer());
                     for (final String msg : s.split("<br>")) {
                         sendMessage(msg);
                     }
@@ -4934,6 +4934,10 @@ public class Quester implements IQuester {
                                 }
                             }
                         }
+                        if (plugin.getSettings().getConsoleLogging() > 3) {
+                            plugin.getLogger().info("Found " + mq.size() + " party members for quest ID "
+                                    + quest.getId() + " via Unite plugin");
+                        }
                         return mq;
                     }
                 }
@@ -4976,6 +4980,10 @@ public class Quester implements IQuester {
                                     }
                                 }
                             }
+                        }
+                        if (plugin.getSettings().getConsoleLogging() > 3) {
+                            plugin.getLogger().info("Found " + mq.size() + " party members for quest ID "
+                                    + quest.getId() + " via Parties plugin");
                         }
                         return mq;
                     }

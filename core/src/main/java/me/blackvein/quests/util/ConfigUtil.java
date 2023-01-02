@@ -45,6 +45,10 @@ public class ConfigUtil {
             return false;
         }
         for (final Object o : list) {
+            if (o == null) {
+                Bukkit.getLogger().severe(clazz.getSimpleName() + " type in Quests file was \"null\"");
+                return false;
+            }
             if (!clazz.isAssignableFrom(o.getClass())) {
                 return false;
             }
@@ -141,11 +145,14 @@ public class ConfigUtil {
     
     public static String parseString(final String s, final IQuest quest) {
         String parsed = parseString(s);
-        if (parsed.contains("<npc>")) {
-            if (quest.getNpcStart() != null) {
-                parsed = parsed.replace("<npc>", quest.getNpcStartName());
-            } else {
-                Bukkit.getLogger().warning(quest.getName() + " quest uses <npc> tag but doesn't have an NPC start set");
+        if (quest != null && quest.getName() != null) {
+            parsed = parsed.replace("<quest>", quest.getName());
+            if (parsed.contains("<npc>")) {
+                if (quest.getNpcStart() != null) {
+                    parsed = parsed.replace("<npc>", quest.getNpcStartName());
+                } else {
+                    Bukkit.getLogger().warning(quest.getName() + " quest uses <npc> tag but doesn't have an NPC start set");
+                }
             }
         }
         return parsed;
