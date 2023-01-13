@@ -14,7 +14,6 @@ package me.blackvein.quests;
 
 import com.alessiodp.parties.api.Parties;
 import com.alessiodp.parties.api.interfaces.PartiesAPI;
-import com.codisimus.plugins.phatloots.PhatLoots;
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.mcMMO;
@@ -39,6 +38,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
@@ -60,7 +61,6 @@ public class Dependencies implements IDependencies {
     private static WorldGuardAPI worldGuardApi = null;
     private static mcMMO mcmmo = null;
     private static Heroes heroes = null;
-    private static PhatLoots phatLoots = null;
     public static PlaceholderAPIPlugin placeholder = null;
     public static CitizensPlugin citizens = null;
     private static DenizenAPI denizenApi = null;
@@ -132,19 +132,6 @@ public class Dependencies implements IDependencies {
             heroes = (Heroes) plugin.getServer().getPluginManager().getPlugin("Heroes");
         }
         return heroes;
-    }
-    
-    public PhatLoots getPhatLoots() {
-        if (phatLoots == null && isPluginAvailable("PhatLoots")) {
-            try {
-                phatLoots = (PhatLoots) plugin.getServer().getPluginManager().getPlugin("PhatLoots");
-                plugin.getLogger().info("Sucessfully linked Quests with PhatLoots " 
-                        + phatLoots.getDescription().getVersion());
-            } catch (final NoClassDefFoundError e) {
-                plugin.getLogger().warning("Unofficial version of PhatLoots found. PhatLoots in Quests not enabled.");
-            }
-        }
-        return phatLoots;
     }
     
     public PlaceholderAPIPlugin getPlaceholderApi() {
@@ -294,7 +281,7 @@ public class Dependencies implements IDependencies {
         return plugin.getDenizenTrigger().runDenizenScript(scriptName, quester, uuid);
     }
 
-    public Location getNPCLocation(final UUID uuid) {
+    public @Nullable Location getNPCLocation(final UUID uuid) {
         if (citizens != null && citizens.getNPCRegistry().getByUniqueId(uuid) != null) {
             return citizens.getNPCRegistry().getByUniqueId(uuid).getStoredLocation();
         } else if (getZnpcsUuids().contains(uuid)) {
@@ -306,7 +293,19 @@ public class Dependencies implements IDependencies {
         return null;
     }
 
-    public String getNPCName(final UUID uuid) {
+    public @Nullable Entity getNPCEntity(final UUID uuid) {
+        if (citizens != null && citizens.getNPCRegistry().getByUniqueId(uuid) != null) {
+            return citizens.getNPCRegistry().getByUniqueId(uuid).getEntity();
+        } else if (getZnpcsUuids().contains(uuid)) {
+            final Optional<NPC> opt = NPC.all().stream().filter(npc1 -> npc1.getUUID().equals(uuid)).findAny();
+            if (opt.isPresent()) {
+                return (Entity) opt.get().getBukkitEntity();
+            }
+        }
+        return null;
+    }
+
+    public @NotNull String getNPCName(final UUID uuid) {
         Entity npc = null;
         if (citizens != null && citizens.getNPCRegistry().getByUniqueId(uuid) != null) {
             return citizens.getNPCRegistry().getByUniqueId(uuid).getName();
@@ -322,6 +321,18 @@ public class Dependencies implements IDependencies {
             }
         }
         return "NPC";
+    }
+
+    public @Nullable UUID getUUIDFromNPC(final Entity entity) {
+        if (citizens != null && citizens.getNPCRegistry().isNPC(entity)) {
+            return citizens.getNPCRegistry().getNPC(entity).getUniqueId();
+        } else if (getZnpcsUuids().contains(entity.getUniqueId())) {
+            final Optional<NPC> opt = NPC.all().stream().filter(npc1 -> npc1.getUUID().equals(entity.getUniqueId())).findAny();
+            if (opt.isPresent()) {
+                return opt.get().getUUID();
+            }
+        }
+        return null;
     }
     
     public int getMcmmoSkillLevel(final SkillType st, final String player) {
@@ -357,7 +368,6 @@ public class Dependencies implements IDependencies {
         getDenizenApi();
         getMcmmoClassic();
         getHeroes();
-        getPhatLoots();
         getPlaceholderApi();
         getCitizensBooksApi();
         getPartiesApi();

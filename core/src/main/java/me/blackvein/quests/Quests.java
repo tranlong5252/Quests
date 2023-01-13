@@ -12,7 +12,6 @@
 
 package me.blackvein.quests;
 
-import com.codisimus.plugins.phatloots.PhatLootsAPI;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.google.common.collect.Lists;
 import com.herocraftonline.heroes.characters.classes.HeroClass;
@@ -171,9 +170,11 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     public void onEnable() {
         /*----> WARNING: ORDER OF STEPS MATTERS <----*/
 
+        // 1 - Trigger server to initialize Legacy Material Support
+        Material.matchMaterial("STONE", true);
         ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addFilter(new QuestsLog4JFilter());
 
-        // 1 - Initialize variables
+        // 2 - Initialize variables
         bukkitVersion = Bukkit.getServer().getBukkitVersion().split("-")[0];
         settings = new Settings(this);
         try {
@@ -198,38 +199,39 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         depends = new Dependencies(this);
         trigger = new DenizenTrigger(this);
 
-        // 2 - Load main config
+        // 3 - Load main config
         settings.init();
         if (settings.getLanguage().contains("-")) {
             final Metrics metrics = new Metrics(this);
             metrics.addCustomChart(new Metrics.SimplePie("language", () -> settings.getLanguage()));
         }
         
-        // 3 - Setup language files
+        // 4 - Setup language files
         try {
             setupLang();
         } catch (final IOException | URISyntaxException e) {
             e.printStackTrace();
         }
 
-        // 4 - Load command executor
+        // 5 - Load command executor
         cmdExecutor = new CommandManager(this);
         
-        // 5 - Load soft-depends
+        // 6 - Load soft-depends
         depends.init();
         
-        // 6 - Save resources from jar
+        // 7 - Save resources from jar
         saveResourceAs("quests.yml", "quests.yml", false);
         saveResourceAs("actions.yml", "actions.yml", false);
         saveResourceAs("conditions.yml", "conditions.yml", false);
         
-        // 7 - Save config with any new options
+        // 8 - Save config with any new options
         getConfig().options().copyDefaults(true);
+        getConfig().options().header("See https://pikamug.gitbook.io/quests/setup/configuration");
         saveConfig();
         final StorageFactory storageFactory = new StorageFactory(this);
         storage = storageFactory.getInstance();
         
-        // 8 - Setup commands
+        // 9 - Setup commands
         if (getCommand("quests") != null) {
             Objects.requireNonNull(getCommand("quests")).setExecutor(getTabExecutor());
             Objects.requireNonNull(getCommand("quests")).setTabCompleter(getTabExecutor());
@@ -243,7 +245,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             Objects.requireNonNull(getCommand("quest")).setTabCompleter(getTabExecutor());
         }
         
-        // 9 - Build conversation factories
+        // 10 - Build conversation factories
         this.conversationFactory = new ConversationFactory(this).withModality(false)
                 .withPrefix(context -> ChatColor.GRAY.toString())
                 .withFirstPrompt(new QuestAcceptPrompt()).withTimeout(settings.getAcceptTimeout())
@@ -253,7 +255,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 .withFirstPrompt(new NpcOfferQuestPrompt()).withTimeout(settings.getAcceptTimeout())
                 .withLocalEcho(false).addConversationAbandonedListener(convoListener);
 
-        // 10 - Register listeners
+        // 11 - Register listeners
         getServer().getPluginManager().registerEvents(getBlockListener(), this);
         getServer().getPluginManager().registerEvents(getItemListener(), this);
         depends.linkCitizens();
@@ -271,7 +273,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             getServer().getPluginManager().registerEvents(getPartiesListener(), this);
         }
 
-        // 11 - Attempt to check for updates
+        // 12 - Attempt to check for updates
         new UpdateChecker(this, 3711).getVersion(version -> {
             if (!getDescription().getVersion().split("-")[0].equalsIgnoreCase(version)) {
                 getLogger().info(ChatColor.DARK_GREEN + Lang.get("updateTo").replace("<version>",
@@ -279,7 +281,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
         });
 
-        // 12 - Delay loading of quests, actions and modules
+        // 13 - Delay loading of quests, actions and modules
         delayLoadQuestInfo();
     }
 
@@ -2106,22 +2108,8 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 }
             }
         }
-        if (depends.isPluginAvailable("PhatLoots")) {
-            if (config.contains("quests." + questKey + ".rewards.phat-loots")) {
-                if (ConfigUtil.checkList(config.getList("quests." + questKey + ".rewards.phat-loots"), String.class)) {
-                    for (final String loot : config.getStringList("quests." + questKey + ".rewards.phat-loots")) {
-                        if (depends.getPhatLoots() == null) {
-                            throw new QuestFormatException("PhatLoots not found for phat-loots", questKey);
-                        } else if (PhatLootsAPI.getPhatLoot(loot) == null) {
-                            throw new QuestFormatException("Reward phat-loots has invalid PhatLoot name " + loot,
-                                    questKey);
-                        }
-                    }
-                    rewards.setPhatLoots(config.getStringList("quests." + questKey + ".rewards.phat-loots"));
-                } else {
-                    throw new QuestFormatException("Reward phat-loots is not a list of PhatLoots", questKey);
-                }
-            }
+        if (config.contains("quests." + questKey + ".rewards.phat-loots")) {
+            throw new QuestFormatException("PhatLoots support has been removed. Use the module instead!", questKey);
         }
         if (config.contains("quests." + questKey + ".rewards.details-override")) {
             if (ConfigUtil.checkList(config.getList("quests." + questKey 
@@ -4539,69 +4527,109 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         }
         return null;
     }
+
+    /**
+     * Checks whether an NPC has a quest that the player may accept
+     *
+     * @param npc the giver NPC UUID to check
+     * @param quester The player to check
+     * @return true if at least one available quest has not yet been completed
+     */
+    public boolean hasQuest(final UUID npc, final IQuester quester) {
+        for (final IQuest q : quests) {
+            if (q.getNpcStart() != null && !quester.getCompletedQuestsTemp().contains(q)) {
+                if (q.getNpcStart().equals(npc)) {
+                    final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
+                    if (!ignoreLockedQuests || q.testRequirements(quester)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // Unused internally, left for external use
+    /**
+     * Checks whether an NPC has a quest that the player has already completed
+     *
+     * @param npc The giver NPC UUID to check
+     * @param quester The player to check
+     * @return true if at least one available quest has been completed
+     */
+    public boolean hasCompletedQuest(final UUID npc, final IQuester quester) {
+        for (final IQuest q : quests) {
+            if (q.getNpcStart() != null && quester.getCompletedQuestsTemp().contains(q)) {
+                if (q.getNpcStart().equals(npc)) {
+                    final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
+                    if (!ignoreLockedQuests || q.testRequirements(quester)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether an NPC has a repeatable quest that the player has already completed
+     *
+     * @param npc The giver NPC UUID to check
+     * @param quester The player to check
+     * @return true if at least one available, redoable quest has been completed
+     */
+    public boolean hasCompletedRedoableQuest(final UUID npc, final IQuester quester) {
+        for (final IQuest q : quests) {
+            if (q.getNpcStart() != null && quester.getCompletedQuestsTemp().contains(q)
+                    && q.getPlanner().getCooldown() > -1) {
+                if (q.getNpcStart().equals(npc)) {
+                    final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
+                    if (!ignoreLockedQuests || q.testRequirements(quester)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     
     /**
-     * Checks whether a NPC has a quest that the player may accept
+     * Checks whether an NPC has a quest that the player may accept
      * 
      * @param npc The giver NPC to check
      * @param quester The player to check
      * @return true if at least one available quest has not yet been completed
+     * @deprecated Use {@link #hasQuest(UUID, IQuester)}
      */
+    @Deprecated
     public boolean hasQuest(final NPC npc, final IQuester quester) {
-        for (final IQuest q : quests) {
-            if (q.getNpcStart() != null && !quester.getCompletedQuestsTemp().contains(q)) {
-                if (q.getNpcStart().equals(npc.getUniqueId())) {
-                    final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
-                    if (!ignoreLockedQuests || q.testRequirements(quester)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return hasQuest(npc.getUniqueId(), quester);
     }
     
     // Unused internally, left for external use
     /**
-     * Checks whether a NPC has a quest that the player has already completed
+     * Checks whether an NPC has a quest that the player has already completed
      * 
      * @param npc The giver NPC to check
      * @param quester The player to check
      * @return true if at least one available quest has been completed
+     * @deprecated Use {@link #hasCompletedQuest(UUID, IQuester)}
      */
+    @Deprecated
     public boolean hasCompletedQuest(final NPC npc, final IQuester quester) {
-        for (final IQuest q : quests) {
-            if (q.getNpcStart() != null && quester.getCompletedQuestsTemp().contains(q)) {
-                if (q.getNpcStart().equals(npc.getUniqueId())) {
-                    final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
-                    if (!ignoreLockedQuests || q.testRequirements(quester)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return hasCompletedQuest(npc.getUniqueId(), quester);
     }
     
     /**
-     * Checks whether a NPC has a repeatable quest that the player has already completed
+     * Checks whether an NPC has a repeatable quest that the player has already completed
      * 
      * @param npc The giver NPC to check
      * @param quester The player to check
      * @return true if at least one available, redoable quest has been completed
+     * @deprecated Use {@link #hasCompletedRedoableQuest(UUID, IQuester)}
      */
+    @Deprecated
     public boolean hasCompletedRedoableQuest(final NPC npc, final IQuester quester) {
-        for (final IQuest q : quests) {
-            if (q.getNpcStart() != null && quester.getCompletedQuestsTemp().contains(q)
-                    && q.getPlanner().getCooldown() > -1) {
-                if (q.getNpcStart().equals(npc.getUniqueId())) {
-                    final boolean ignoreLockedQuests = settings.canIgnoreLockedQuests();
-                    if (!ignoreLockedQuests || q.testRequirements(quester)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return hasCompletedRedoableQuest(npc.getUniqueId(), quester);
     }
 }
