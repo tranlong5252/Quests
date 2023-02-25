@@ -189,7 +189,10 @@ public class CK {
     public static final String C_WHILE_RIDING_NPC = "conRidingNpc";
     public static final String C_WHILE_PERMISSION = "conPermission";
     public static final String C_WHILE_HOLDING_MAIN_HAND = "conHoldingMainHand";
+    public static final String C_WHILE_WEARING = "conWearing";
     public static final String C_WHILE_WITHIN_WORLD = "conWithinWorld";
+    public static final String C_WHILE_WITHIN_TICKS_START = "conWithinTicksStart";
+    public static final String C_WHILE_WITHIN_TICKS_END = "conWithinTicksEnd";
     public static final String C_WHILE_WITHIN_BIOME = "conWithinBiome";
     public static final String C_WHILE_WITHIN_REGION = "conWithinRegion";
     public static final String C_WHILE_PLACEHOLDER_ID = "conPlaceholderId";

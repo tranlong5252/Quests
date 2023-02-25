@@ -161,7 +161,6 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
     
     public class EffectSoundListPrompt extends ActionsEditorNumericPrompt {
 
-        
         public EffectSoundListPrompt(final ConversationContext context) {
             super(context);
 

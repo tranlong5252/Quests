@@ -13,9 +13,13 @@
 package me.blackvein.quests.convo.conditions.tasks;
 
 import me.blackvein.quests.Quests;
+import me.blackvein.quests.convo.conditions.ConditionsEditorNumericPrompt;
+import me.blackvein.quests.convo.conditions.ConditionsEditorStringPrompt;
 import me.blackvein.quests.convo.conditions.main.ConditionMainPrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorNumericPrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
+import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenNumericPromptEvent;
+import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenStringPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
 import me.blackvein.quests.util.CK;
@@ -31,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class EntityPrompt extends QuestsEditorNumericPrompt {
+public class EntityPrompt extends ConditionsEditorNumericPrompt {
     
     private final Quests plugin;
     
@@ -125,8 +129,8 @@ public class EntityPrompt extends QuestsEditorNumericPrompt {
     @Override
     public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
         if (context.getPlugin() != null) {
-            final QuestsEditorPostOpenNumericPromptEvent event
-                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+            final ConditionsEditorPostOpenNumericPromptEvent event
+                    = new ConditionsEditorPostOpenNumericPromptEvent(context, this);
             context.getPlugin().getServer().getPluginManager().callEvent(event);
         }
         
@@ -158,7 +162,7 @@ public class EntityPrompt extends QuestsEditorNumericPrompt {
         }
     }
     
-    public class EntitiesPrompt extends QuestsEditorStringPrompt {
+    public class EntitiesPrompt extends ConditionsEditorStringPrompt {
         
         public EntitiesPrompt(final ConversationContext context) {
             super(context);
@@ -177,8 +181,8 @@ public class EntityPrompt extends QuestsEditorNumericPrompt {
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
             if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
+                final ConditionsEditorPostOpenStringPromptEvent event
+                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
                 context.getPlugin().getServer().getPluginManager().callEvent(event);
             }
 
@@ -232,7 +236,7 @@ public class EntityPrompt extends QuestsEditorNumericPrompt {
         }
     }
     
-    public class ConditionNpcsPrompt extends QuestsEditorStringPrompt {
+    public class ConditionNpcsPrompt extends ConditionsEditorStringPrompt {
         
         public ConditionNpcsPrompt(final ConversationContext context) {
             super(context);
@@ -251,8 +255,8 @@ public class EntityPrompt extends QuestsEditorNumericPrompt {
         @Override
         public @NotNull String getPromptText(final ConversationContext context) {
             if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
+                final ConditionsEditorPostOpenStringPromptEvent event
+                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
                 context.getPlugin().getServer().getPluginManager().callEvent(event);
             }
             
@@ -277,7 +281,7 @@ public class EntityPrompt extends QuestsEditorNumericPrompt {
                     for (final String s : input.split(" ")) {
                         try {
                             final UUID u = UUID.fromString(s);
-                            if (plugin.getDependencies().getNPCName(u) == null) {
+                            if (plugin.getDependencies().getNPCEntity(u) == null) {
                                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("questEditorInvalidNPC"));
                                 return new ConditionNpcsPrompt(context);
                             }

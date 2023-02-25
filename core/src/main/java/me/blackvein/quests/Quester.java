@@ -17,7 +17,6 @@ import com.alessiodp.parties.api.interfaces.PartyPlayer;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.player.UserManager;
 import io.github.znetworkw.znpcservers.npc.NPC;
-import me.blackvein.quests.conditions.ICondition;
 import me.blackvein.quests.config.ISettings;
 import me.blackvein.quests.convo.misc.QuestAbandonPrompt;
 import me.blackvein.quests.dependencies.IDependencies;
@@ -51,7 +50,6 @@ import me.blackvein.quests.util.MiscUtil;
 import me.blackvein.quests.util.RomanNumeral;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.pikamug.unite.api.objects.PartyProvider;
-import net.citizensnpcs.api.CitizensAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -819,72 +817,7 @@ public class Quester implements IQuester {
                 if (stageStartMessage != null) {
                     p.sendMessage(ConfigUtil.parseStringWithPossibleLineBreaks(stageStartMessage, quest, getPlayer()));
                 }
-                final ICondition c = stage.getCondition();
-                if (c != null && stage.getObjectiveOverrides().isEmpty()) {
-                    sendMessage(ChatColor.LIGHT_PURPLE + Lang.get("stageEditorConditions"));
-                    if (!c.getEntitiesWhileRiding().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorRideEntity"));
-                        for (final String e : c.getEntitiesWhileRiding()) {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(e);
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    } else if (!c.getNpcsWhileRiding().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorRideNPC"));
-                        for (final UUID u : c.getNpcsWhileRiding()) {
-                            if (plugin.getDependencies().getCitizens() != null) {
-                                msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(CitizensAPI.getNPCRegistry()
-                                        .getByUniqueId(u).getName());
-                            } else {
-                                msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(u);
-                            }
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    } else if (!c.getPermissions().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorPermissions"));
-                        for (final String e : c.getPermissions()) {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(e);
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    } else if (!c.getItemsWhileHoldingMainHand().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorItemsInMainHand"));
-                        for (final ItemStack is : c.getItemsWhileHoldingMainHand()) {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(ItemUtil.getPrettyItemName(is
-                                    .getType().name()));
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    } else if (!c.getWorldsWhileStayingWithin().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorStayWithinWorld"));
-                        for (final String w : c.getWorldsWhileStayingWithin()) {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(w);
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    } else if (!c.getBiomesWhileStayingWithin().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorStayWithinBiome"));
-                        for (final String b : c.getBiomesWhileStayingWithin()) {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(MiscUtil
-                                    .snakeCaseToUpperCamelCase(b));
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    } else if (!c.getRegionsWhileStayingWithin().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorStayWithinRegion"));
-                        for (final String r : c.getRegionsWhileStayingWithin()) {
-                            msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(r);
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    } else if (!c.getPlaceholdersCheckIdentifier().isEmpty()) {
-                        final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorCheckPlaceholder"));
-                        int index = 0;
-                        for (final String r : c.getPlaceholdersCheckIdentifier()) {
-                            if (c.getPlaceholdersCheckValue().size() > index) {
-                                msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(r).append(ChatColor.GRAY)
-                                        .append(" = ").append(ChatColor.AQUA).append(c.getPlaceholdersCheckValue()
-                                        .get(index));
-                            }
-                            index++;
-                        }
-                        sendMessage(ChatColor.YELLOW + msg.toString());
-                    }
-                }
+                plugin.showConditions(quest, this);
             }
             if (quest.getInitialAction() != null) {
                 quest.getInitialAction().fire(this, quest);
@@ -4924,9 +4857,18 @@ public class Quester implements IQuester {
                                 if (!id.equals(getUUID())) {
                                     if (distanceSquared > 0) {
                                         final Player player = Bukkit.getPlayer(id);
-                                        if (player != null && distanceSquared >= getPlayer().getLocation()
-                                                .distanceSquared(player.getLocation())) {
-                                            mq.add(plugin.getQuester(id));
+                                        if (player != null) {
+                                            final Location locationOne = getPlayer().getLocation();
+                                            final Location locationTwo = player.getLocation();
+                                            if (locationOne.getWorld() != null && locationTwo.getWorld() != null) {
+                                                if (locationOne.getWorld().getName().equals(locationTwo.getWorld()
+                                                        .getName())) {
+                                                    if (distanceSquared >= getPlayer().getLocation()
+                                                            .distanceSquared(player.getLocation())) {
+                                                        mq.add(plugin.getQuester(id));
+                                                    }
+                                                }
+                                            }
                                         }
                                     } else {
                                         mq.add(plugin.getQuester(id));
@@ -5006,6 +4948,13 @@ public class Quester implements IQuester {
         return true;
     }
 
+
+    /**
+     * Whether this Quester meets condition of given quest
+     *
+     * @param quest The quest to check
+     * @return Whether to send Quester reason for failure
+     */
     public boolean meetsCondition(final IQuest quest, final boolean giveReason) {
         final IStage stage = getCurrentStage(quest);
         if (stage != null && stage.getCondition() != null && !stage.getCondition().check(this, quest)) {
@@ -5015,7 +4964,8 @@ public class Quester implements IQuester {
                         .replace("<quest>", quest.getName()));
                 }
                 if (stage.getFailAction() != null) {
-                    getCurrentStage(quest).getFailAction().fire(this, quest);
+                    plugin.getServer().getScheduler().runTask(plugin, () ->
+                            getCurrentStage(quest).getFailAction().fire(this, quest));
                 }
                 hardQuit(quest);
             } else if (giveReason) {
@@ -5030,7 +4980,12 @@ public class Quester implements IQuester {
         }
         return true;
     }
-    
+
+    /**
+     * Whether this Quester is currently selecting a block in editor
+     *
+     * @return true if selecting
+     */
     public boolean isSelectingBlock() {
         final UUID uuid = getPlayer().getUniqueId();
         return plugin.getQuestFactory().getSelectedBlockStarts().containsKey(uuid)
@@ -5042,7 +4997,12 @@ public class Quester implements IQuester {
                 || plugin.getActionFactory().getSelectedLightningLocations().containsKey(uuid)
                 || plugin.getActionFactory().getSelectedTeleportLocations().containsKey(uuid);
     }
-    
+
+    /**
+     * Whether this Quester is in the specified WorldGuard region
+     *
+     * @return true if in specified WorldGuard region
+     */
     public boolean isInRegion(final String regionID) {
         if (getPlayer() == null) {
             return false;

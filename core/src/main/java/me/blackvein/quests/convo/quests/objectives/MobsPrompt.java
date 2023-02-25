@@ -106,7 +106,8 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
             } else {
                 final StringBuilder text = new StringBuilder();
                 final LinkedList<String> mobs = (LinkedList<String>) context.getSessionData(pref + CK.S_MOB_TYPES);
-                final LinkedList<Integer> amounts = (LinkedList<Integer>) context.getSessionData(pref + CK.S_MOB_AMOUNTS);
+                final LinkedList<Integer> amounts
+                        = (LinkedList<Integer>) context.getSessionData(pref + CK.S_MOB_AMOUNTS);
                 if (mobs != null && amounts != null) {
                     if (context.getSessionData(pref + CK.S_MOB_KILL_LOCATIONS) == null) {
                         for (int i = 0; i < mobs.size(); i++) {
@@ -127,13 +128,14 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
                         if (locations != null && radii != null && names != null) {
                             for (int i = 0; i < mobs.size(); i++) {
                                 String msg = Lang.get("blocksWithin");
-                                msg = msg.replace("<amount>", ChatColor.DARK_PURPLE + "" + radii.get(i) + ChatColor.GRAY);
+                                msg = msg.replace("<amount>", ChatColor.DARK_PURPLE + "" + radii.get(i)
+                                        + ChatColor.GRAY);
                                 text.append("\n").append(ChatColor.GRAY).append("     - ").append(ChatColor.BLUE)
                                         .append(MiscUtil.getPrettyMobName(Objects.requireNonNull(MiscUtil
                                                 .getProperMobType(mobs.get(i))))).append(ChatColor.GRAY).append(" x ")
-                                        .append(ChatColor.DARK_AQUA).append(amounts.get(i)).append(ChatColor.GRAY).append(msg)
-                                        .append(ChatColor.YELLOW).append(names.get(i)).append(" (").append(locations.get(i))
-                                        .append(")");
+                                        .append(ChatColor.DARK_AQUA).append(amounts.get(i)).append(ChatColor.GRAY)
+                                        .append(msg).append(ChatColor.YELLOW).append(names.get(i)).append(" (")
+                                        .append(locations.get(i)).append(")");
                             }
                         }
                     }
@@ -146,7 +148,8 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
             } else {
                 final StringBuilder text = new StringBuilder();
                 final LinkedList<String> mobs = (LinkedList<String>) context.getSessionData(pref + CK.S_TAME_TYPES);
-                final LinkedList<Integer> amounts = (LinkedList<Integer>) context.getSessionData(pref + CK.S_TAME_AMOUNTS);
+                final LinkedList<Integer> amounts
+                        = (LinkedList<Integer>) context.getSessionData(pref + CK.S_TAME_AMOUNTS);
                 if (mobs != null && amounts != null) {
                     for (int i = 0; i < mobs.size(); i++) {
                         text.append("\n").append(ChatColor.GRAY).append("     - ").append(ChatColor.BLUE)
@@ -390,7 +393,8 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
         @Override
         public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
             if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenNumericPromptEvent event = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+                final QuestsEditorPostOpenNumericPromptEvent event
+                        = new QuestsEditorPostOpenNumericPromptEvent(context, this);
                 context.getPlugin().getServer().getPluginManager().callEvent(event);
             }
 
@@ -615,7 +619,8 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
                         }
                         mobAmounts.add(i);
                     } catch (final NumberFormatException e) {
-                        context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("reqNotANumber").replace("<input>", input));
+                        context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("reqNotANumber")
+                                .replace("<input>", input));
                         return new MobsAmountsPrompt(context);
                     }
                 }
@@ -711,7 +716,8 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
             if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event = new QuestsEditorPostOpenStringPromptEvent(context, this);
+                final QuestsEditorPostOpenStringPromptEvent event
+                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
                 context.getPlugin().getServer().getPluginManager().callEvent(event);
             }
             
@@ -876,7 +882,8 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
         @Override
         public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
             if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenNumericPromptEvent event = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+                final QuestsEditorPostOpenNumericPromptEvent event
+                        = new QuestsEditorPostOpenNumericPromptEvent(context, this);
                 context.getPlugin().getServer().getPluginManager().callEvent(event);
             }
 
@@ -1252,7 +1259,8 @@ public class MobsPrompt extends QuestsEditorNumericPrompt {
                     return ChatColor.GRAY + "(" + Lang.get("noneSet") + ")";
                 } else {
                     final StringBuilder text = new StringBuilder();
-                    final List<Integer> shearAmounts = (List<Integer>) context.getSessionData(pref + CK.S_SHEAR_AMOUNTS);
+                    final List<Integer> shearAmounts
+                            = (List<Integer>) context.getSessionData(pref + CK.S_SHEAR_AMOUNTS);
                     if (shearAmounts != null) {
                         for (final Integer i : shearAmounts) {
                             text.append("\n").append(ChatColor.GRAY).append("     - ").append(ChatColor.AQUA).append(i);

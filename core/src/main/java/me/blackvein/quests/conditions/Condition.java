@@ -34,7 +34,10 @@ public class Condition implements ICondition {
     private LinkedList<UUID> npcsWhileRiding = new LinkedList<>();
     private LinkedList<String> permissions = new LinkedList<>();
     private LinkedList<ItemStack> itemsWhileHoldingMainHand = new LinkedList<>();
+    private LinkedList<ItemStack> itemsWhileWearing = new LinkedList<>();
     private LinkedList<String> worldsWhileStayingWithin = new LinkedList<>();
+    private int tickStartWhileStayingWithin = -1;
+    private int tickEndWhileStayingWithin = -1;
     private LinkedList<String> biomesWhileStayingWithin = new LinkedList<>();
     private LinkedList<String> regionsWhileStayingWithin = new LinkedList<>();
     private LinkedList<String> placeholdersCheckIdentifier = new LinkedList<>();
@@ -110,6 +113,16 @@ public class Condition implements ICondition {
     }
 
     @Override
+    public LinkedList<ItemStack> getItemsWhileWearing() {
+        return itemsWhileWearing;
+    }
+
+    @Override
+    public void setItemsWhileWearing(final LinkedList<ItemStack> itemsWhileWearing) {
+        this.itemsWhileWearing = itemsWhileWearing;
+    }
+
+    @Override
     public LinkedList<String> getWorldsWhileStayingWithin() {
         return worldsWhileStayingWithin;
     }
@@ -117,6 +130,26 @@ public class Condition implements ICondition {
     @Override
     public void setWorldsWhileStayingWithin(final LinkedList<String> worldsWhileStayingWithin) {
         this.worldsWhileStayingWithin = worldsWhileStayingWithin;
+    }
+
+    @Override
+    public int getTickStartWhileStayingWithin() {
+        return tickStartWhileStayingWithin;
+    }
+
+    @Override
+    public void setTickStartWhileStayingWithin(final int tickStartWhileStayingWithin) {
+        this.tickStartWhileStayingWithin = tickStartWhileStayingWithin;
+    }
+
+    @Override
+    public int getTickEndWhileStayingWithin() {
+        return tickEndWhileStayingWithin;
+    }
+
+    @Override
+    public void setTickEndWhileStayingWithin(final int tickEndWhileStayingWithin) {
+        this.tickEndWhileStayingWithin = tickEndWhileStayingWithin;
     }
 
     @Override
@@ -230,6 +263,20 @@ public class Condition implements ICondition {
             if (!atLeastOne) {
                 failed = true;
             }
+        } else if (!itemsWhileWearing.isEmpty()) {
+            // Must have ALL listed armor equipped
+            int matches = 0;
+            for (final ItemStack is : itemsWhileWearing) {
+                for (ItemStack armor : player.getInventory().getArmorContents()) {
+                    if (ItemUtil.compareItems(armor, is, true, true) == 0) {
+                        matches++;
+                        break;
+                    }
+                }
+            }
+            if (matches != itemsWhileWearing.size()) {
+                failed = true;
+            }
         } else if (!worldsWhileStayingWithin.isEmpty()) {
             boolean atLeastOne = false;
             for (final String w : worldsWhileStayingWithin) {
@@ -239,6 +286,11 @@ public class Condition implements ICondition {
                 }
             }
             if (!atLeastOne) {
+                failed = true;
+            }
+        } else if (tickStartWhileStayingWithin > -1 && tickEndWhileStayingWithin > -1) {
+            long t = player.getWorld().getTime();
+            if (t < tickStartWhileStayingWithin || t > tickEndWhileStayingWithin) {
                 failed = true;
             }
         } else if (!biomesWhileStayingWithin.isEmpty()) {

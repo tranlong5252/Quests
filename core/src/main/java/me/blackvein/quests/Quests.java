@@ -171,7 +171,12 @@ public class Quests extends JavaPlugin implements QuestsAPI {
         /*----> WARNING: ORDER OF STEPS MATTERS <----*/
 
         // 1 - Trigger server to initialize Legacy Material Support
-        Material.matchMaterial("STONE", true);
+        try {
+            Material.matchMaterial("STONE", true);
+        } catch (final NoSuchMethodError ignored) {
+            // Do nothing
+        }
+
         ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addFilter(new QuestsLog4JFilter());
 
         // 2 - Initialize variables
@@ -1090,12 +1095,13 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             getLogger().warning("Quest data was null when showing objectives for " + quest.getName());
             return;
         }
+        final IStage stage = quester.getCurrentStage(quest);
         if (quester.getCurrentStage(quest) == null) {
             getLogger().warning("Current stage was null when showing objectives for " + quest.getName());
             return;
         }
-        if (!ignoreOverrides && !quester.getCurrentStage(quest).getObjectiveOverrides().isEmpty()) {
-            for (final String s: quester.getCurrentStage(quest).getObjectiveOverrides()) {
+        if (!ignoreOverrides && !stage.getObjectiveOverrides().isEmpty()) {
+            for (final String s: stage.getObjectiveOverrides()) {
                 String message = ChatColor.GREEN + (s.trim().length() > 0 ? "- " : "") + ConfigUtil
                         .parseString(s, quest, quester.getPlayer());
                 if (depends.getPlaceholderApi() != null) {
@@ -1106,7 +1112,6 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             return;
         }
         final QuestData data = quester.getQuestData(quest);
-        final IStage stage = quester.getCurrentStage(quest);
         for (final ItemStack e : stage.getBlocksToBreak()) {
             for (final ItemStack e2 : data.blocksBroken) {
                 if (e2.getType().equals(e.getType()) && e2.getDurability() == e.getDurability()) {
@@ -1618,6 +1623,106 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
             quester.sendMessage(ConfigUtil.parseString(message));
             customIndex++;
+        }
+    }
+
+    /**
+     * Show all of a player's conditions for the current stage of a quest.<p>
+     *
+     * @param quest The quest to get current stage objectives of
+     * @param quester The player to show current stage objectives to
+     */
+    public void showConditions(final IQuest quest, final IQuester quester) {
+        if (quest == null) {
+            getLogger().severe("Quest was null when getting conditions for " + quester.getLastKnownName());
+            return;
+        }
+        if (quester.getQuestData(quest) == null) {
+            getLogger().warning("Quest data was null when showing conditions for " + quest.getName());
+            return;
+        }
+        final IStage stage = quester.getCurrentStage(quest);
+        if (stage == null) {
+            getLogger().warning("Current stage was null when showing conditions for " + quest.getName());
+            return;
+        }
+        final ICondition c = stage.getCondition();
+        if (c != null && stage.getObjectiveOverrides().isEmpty()) {
+            quester.sendMessage(ChatColor.LIGHT_PURPLE + Lang.get("stageEditorConditions"));
+            if (!c.getEntitiesWhileRiding().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorRideEntity"));
+                for (final String e : c.getEntitiesWhileRiding()) {
+                    msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(e);
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getNpcsWhileRiding().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorRideNPC"));
+                for (final UUID u : c.getNpcsWhileRiding()) {
+                    if (getDependencies().getCitizens() != null) {
+                        msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(CitizensAPI.getNPCRegistry()
+                                .getByUniqueId(u).getName());
+                    } else {
+                        msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(u);
+                    }
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getPermissions().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorPermissions"));
+                for (final String e : c.getPermissions()) {
+                    msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(e);
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getItemsWhileHoldingMainHand().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorItemsInMainHand"));
+                for (final ItemStack is : c.getItemsWhileHoldingMainHand()) {
+                    msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(ItemUtil.getPrettyItemName(is
+                            .getType().name()));
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getItemsWhileWearing().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorItemsWear"));
+                for (final ItemStack is : c.getItemsWhileWearing()) {
+                    msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(ItemUtil.getPrettyItemName(is
+                            .getType().name()));
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getWorldsWhileStayingWithin().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorStayWithinWorld"));
+                for (final String w : c.getWorldsWhileStayingWithin()) {
+                    msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(w);
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (c.getTickStartWhileStayingWithin() > -1 && c.getTickEndWhileStayingWithin() > -1) {
+                final StringBuilder msg = new StringBuilder("- ").append(Lang.get("conditionEditorStayWithinTicks"));
+                msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(c.getTickStartWhileStayingWithin())
+                        .append(" - ").append(c.getTickEndWhileStayingWithin());
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getBiomesWhileStayingWithin().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorStayWithinBiome"));
+                for (final String b : c.getBiomesWhileStayingWithin()) {
+                    msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(MiscUtil
+                            .snakeCaseToUpperCamelCase(b));
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getRegionsWhileStayingWithin().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorStayWithinRegion"));
+                for (final String r : c.getRegionsWhileStayingWithin()) {
+                    msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(r);
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            } else if (!c.getPlaceholdersCheckIdentifier().isEmpty()) {
+                final StringBuilder msg = new StringBuilder("- " + Lang.get("conditionEditorCheckPlaceholder"));
+                int index = 0;
+                for (final String r : c.getPlaceholdersCheckIdentifier()) {
+                    if (c.getPlaceholdersCheckValue().size() > index) {
+                        msg.append(ChatColor.AQUA).append("\n   \u2515 ").append(r).append(ChatColor.GRAY)
+                                .append(" = ").append(ChatColor.AQUA).append(c.getPlaceholdersCheckValue()
+                                        .get(index));
+                    }
+                    index++;
+                }
+                quester.sendMessage(ChatColor.YELLOW + msg.toString());
+            }
         }
     }
     
@@ -2396,7 +2501,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             opts.setIgnoreSilkTouch(config.getBoolean("quests." + questKey + ".options.ignore-silk-touch"));
         }
         if (config.contains("quests." + questKey + ".options.external-party-plugin")) {
-            opts.setExternalPartyPlugin(config.getString("quests." + questKey + ".external-party-plugin"));
+            opts.setExternalPartyPlugin(config.getString("quests." + questKey + ".options.external-party-plugin"));
         }
         if (config.contains("quests." + questKey + ".options.use-parties-plugin")) {
             opts.setUsePartiesPlugin(config.getBoolean("quests." + questKey + ".options.use-parties-plugin"));
@@ -3978,6 +4083,19 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
             condition.setItemsWhileHoldingMainHand(temp);
         }
+        if (data.contains(conditionKey + "wear")) {
+            final LinkedList<ItemStack> temp = new LinkedList<>();
+            @SuppressWarnings("unchecked")
+            final List<ItemStack> stackList = (List<ItemStack>) data.get(conditionKey + "wear");
+            if (ConfigUtil.checkList(stackList, ItemStack.class)) {
+                for (final ItemStack stack : stackList) {
+                    if (stack != null) {
+                        temp.add(stack);
+                    }
+                }
+            }
+            condition.setItemsWhileWearing(temp);
+        }
         if (data.contains(conditionKey + "stay-within-world")) {
             if (ConfigUtil.checkList(data.getList(conditionKey + "stay-within-world"), String.class)) {
                 final LinkedList<String> worlds = new LinkedList<>();
@@ -3992,6 +4110,18 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 condition.setWorldsWhileStayingWithin(worlds);
             } else {
                 throw new ConditionFormatException("stay-within-world is not a list of worlds", conditionKey);
+            }
+        }
+        if (data.contains(conditionKey + "stay-within-ticks")) {
+            if (data.isInt(conditionKey + "stay-within-ticks.start")) {
+                condition.setTickStartWhileStayingWithin(data.getInt(conditionKey + "stay-within-ticks.start"));
+            } else {
+                throw new ConditionFormatException("start tick is not a number", conditionKey);
+            }
+            if (data.isInt(conditionKey + "stay-within-ticks.end")) {
+                condition.setTickEndWhileStayingWithin(data.getInt(conditionKey + "stay-within-ticks.end"));
+            } else {
+                throw new ConditionFormatException("end tick is not a number", conditionKey);
             }
         }
         if (data.contains(conditionKey + "stay-within-biome")) {
