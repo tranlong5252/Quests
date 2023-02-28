@@ -33,11 +33,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class EffectPrompt extends ActionsEditorNumericPrompt {
+public class ActionEffectPrompt extends ActionsEditorNumericPrompt {
     
     private final Quests plugin;
     
-    public EffectPrompt(final ConversationContext context) {
+    public ActionEffectPrompt(final ConversationContext context) {
         super(context);
         this.plugin = (Quests)context.getPlugin();
     }
@@ -141,27 +141,27 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
     protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
         switch (input.intValue()) {
         case 1:
-            return new EffectSoundListPrompt(context);
+            return new ActionEffectSoundListPrompt(context);
         case 2:
             if (context.getForWhom() instanceof Player) {
                 final Map<UUID, Block> selectedExplosionLocations = plugin.getActionFactory().getSelectedExplosionLocations();
                 selectedExplosionLocations.put(((Player) context.getForWhom()).getUniqueId(), null);
                 plugin.getActionFactory().setSelectedExplosionLocations(selectedExplosionLocations);
-                return new EffectExplosionPrompt(context);
+                return new ActionEffectExplosionPrompt(context);
             } else {
                 context.getForWhom().sendRawMessage(ChatColor.YELLOW + Lang.get("consoleError"));
-                return new EffectPrompt(context);
+                return new ActionEffectPrompt(context);
             }
         case 3:
             return new ActionMainPrompt(context);
         default:
-            return new EffectPrompt(context);
+            return new ActionEffectPrompt(context);
         }
     }
     
-    public class EffectSoundListPrompt extends ActionsEditorNumericPrompt {
+    public class ActionEffectSoundListPrompt extends ActionsEditorNumericPrompt {
 
-        public EffectSoundListPrompt(final ConversationContext context) {
+        public ActionEffectSoundListPrompt(final ConversationContext context) {
             super(context);
 
         }
@@ -261,27 +261,27 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
         protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
             switch (input.intValue()) {
             case 1:
-                return new EffectSoundPrompt(context);
+                return new ActionEffectSoundPrompt(context);
             case 2:
                 if (context.getSessionData(CK.E_EFFECTS) == null) {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("eventEditorMustAddEffects"));
-                    return new EffectSoundListPrompt(context);
+                    return new ActionEffectSoundListPrompt(context);
                 } else {
                     if (context.getForWhom() instanceof Player) {
                         final Map<UUID, Block> selectedEffectLocations = plugin.getActionFactory().getSelectedEffectLocations();
                         selectedEffectLocations.put(((Player) context.getForWhom()).getUniqueId(), null);
                         plugin.getActionFactory().setSelectedEffectLocations(selectedEffectLocations);
-                        return new EffectSoundLocationPrompt(context);
+                        return new ActionEffectSoundLocationPrompt(context);
                     } else {
                         context.getForWhom().sendRawMessage(ChatColor.YELLOW + Lang.get("consoleError"));
-                        return new EffectSoundListPrompt(context);
+                        return new ActionEffectSoundListPrompt(context);
                     }
                 }
             case 3:
                 context.getForWhom().sendRawMessage(ChatColor.YELLOW + Lang.get("eventEditorEffectsCleared"));
                 context.setSessionData(CK.E_EFFECTS, null);
                 context.setSessionData(CK.E_EFFECTS_LOCATIONS, null);
-                return new EffectSoundListPrompt(context);
+                return new ActionEffectSoundListPrompt(context);
             case 4:
                 final int one;
                 final int two;
@@ -301,17 +301,17 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
                     return new ActionMainPrompt(context);
                 } else {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("listsNotSameSize"));
-                    return new EffectSoundListPrompt(context);
+                    return new ActionEffectSoundListPrompt(context);
                 }
             default:
-                return new EffectSoundListPrompt(context);
+                return new ActionEffectSoundListPrompt(context);
             }
         }
     }
     
-    public class EffectSoundPrompt extends ActionsEditorStringPrompt {
+    public class ActionEffectSoundPrompt extends ActionsEditorStringPrompt {
 
-        public EffectSoundPrompt(final ConversationContext context) {
+        public ActionEffectSoundPrompt(final ConversationContext context) {
             super(context);
         }
         
@@ -367,11 +367,11 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
                         selectedEffectLocations.remove(((Player)context.getForWhom()).getUniqueId());
                         plugin.getActionFactory().setSelectedEffectLocations(selectedEffectLocations);
                     }
-                    return new EffectSoundListPrompt(context);
+                    return new ActionEffectSoundListPrompt(context);
                 } else {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("eventEditorInvalidEffect")
                             .replace("<input>", input));
-                    return new EffectSoundPrompt(context);
+                    return new ActionEffectSoundPrompt(context);
                 }
             } else {
                 if (context.getForWhom() instanceof Player) {
@@ -380,14 +380,14 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
                     selectedEffectLocations.remove(((Player)context.getForWhom()).getUniqueId());
                     plugin.getActionFactory().setSelectedEffectLocations(selectedEffectLocations);
                 }
-                return new EffectSoundListPrompt(context);
+                return new ActionEffectSoundListPrompt(context);
             }
         }
     }
     
-    public class EffectSoundLocationPrompt extends ActionsEditorStringPrompt {
+    public class ActionEffectSoundLocationPrompt extends ActionsEditorStringPrompt {
 
-        public EffectSoundLocationPrompt(final ConversationContext context) {
+        public ActionEffectSoundLocationPrompt(final ConversationContext context) {
             super(context);
         }
         
@@ -435,23 +435,23 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
                     selectedEffectLocations.remove(player.getUniqueId());
                 } else {
                     player.sendMessage(ChatColor.RED + Lang.get("eventEditorSelectBlockFirst"));
-                    return new EffectSoundLocationPrompt(context);
+                    return new ActionEffectSoundLocationPrompt(context);
                 }
-                return new EffectSoundListPrompt(context);
+                return new ActionEffectSoundListPrompt(context);
             } else if (input.equalsIgnoreCase(Lang.get("cmdCancel"))) {
                 final Map<UUID, Block> selectedEffectLocations = plugin.getActionFactory().getSelectedEffectLocations();
                 selectedEffectLocations.remove(player.getUniqueId());
                 plugin.getActionFactory().setSelectedEffectLocations(selectedEffectLocations);
-                return new EffectSoundListPrompt(context);
+                return new ActionEffectSoundListPrompt(context);
             } else {
-                return new EffectSoundLocationPrompt(context);
+                return new ActionEffectSoundLocationPrompt(context);
             }
         }
     }
     
-    public class EffectExplosionPrompt extends ActionsEditorStringPrompt {
+    public class ActionEffectExplosionPrompt extends ActionsEditorStringPrompt {
 
-        public EffectExplosionPrompt(final ConversationContext context) {
+        public ActionEffectExplosionPrompt(final ConversationContext context) {
             super(context);
         }
         
@@ -500,7 +500,7 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
                     plugin.getActionFactory().setSelectedExplosionLocations(selectedExplosionLocations);
                 } else {
                     player.sendMessage(ChatColor.RED + Lang.get("eventEditorSelectBlockFirst"));
-                    return new EffectExplosionPrompt(context);
+                    return new ActionEffectExplosionPrompt(context);
                 }
                 return new ActionMainPrompt(context);
             } else if (input.equalsIgnoreCase(Lang.get("cmdClear"))) {
@@ -515,7 +515,7 @@ public class EffectPrompt extends ActionsEditorNumericPrompt {
                 plugin.getActionFactory().setSelectedExplosionLocations(selectedExplosionLocations);
                 return new ActionMainPrompt(context);
             } else {
-                return new EffectExplosionPrompt(context);
+                return new ActionEffectExplosionPrompt(context);
             }
         }
     }

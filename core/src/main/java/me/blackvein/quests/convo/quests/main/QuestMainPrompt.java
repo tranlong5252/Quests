@@ -18,11 +18,11 @@ import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.generic.ItemStackPrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorNumericPrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
-import me.blackvein.quests.convo.quests.options.OptionsPrompt;
-import me.blackvein.quests.convo.quests.planner.PlannerPrompt;
-import me.blackvein.quests.convo.quests.requirements.RequirementsPrompt;
-import me.blackvein.quests.convo.quests.rewards.RewardsPrompt;
-import me.blackvein.quests.convo.quests.stages.StageMenuPrompt;
+import me.blackvein.quests.convo.quests.options.QuestOptionsPrompt;
+import me.blackvein.quests.convo.quests.planner.QuestPlannerPrompt;
+import me.blackvein.quests.convo.quests.requirements.QuestRequirementsPrompt;
+import me.blackvein.quests.convo.quests.rewards.QuestRewardsPrompt;
+import me.blackvein.quests.convo.quests.stages.QuestStageMenuPrompt;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
 import me.blackvein.quests.quests.IQuest;
@@ -310,15 +310,15 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
                 return new QuestMainPrompt(context);
             }
         case 9:
-            return new RequirementsPrompt(context);
+            return new QuestRequirementsPrompt(context);
         case 10:
-            return new PlannerPrompt(context);
+            return new QuestPlannerPrompt(context);
         case 11:
-            return new StageMenuPrompt(context);
+            return new QuestStageMenuPrompt(context);
         case 12:
-            return new RewardsPrompt(context);
+            return new QuestRewardsPrompt(context);
         case 13:
-            return new OptionsPrompt(context);
+            return new QuestOptionsPrompt(context);
         case 14:
             return new QuestSavePrompt(context);
         case 15:
@@ -515,7 +515,7 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
             if (!input.equalsIgnoreCase(Lang.get("cmdCancel")) && !input.equalsIgnoreCase(Lang.get("cmdClear"))) {
                 try {
                     final UUID uuid = UUID.fromString(input);
-                    if (plugin.getDependencies().getNPCName(uuid) == null) {
+                    if (plugin.getDependencies().getNPCEntity(uuid) == null) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("questEditorInvalidNPC"));
                         return new QuestNPCStartPrompt(context);
                     }
@@ -741,12 +741,9 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
     }
     
     public class QuestGuiDisplayPrompt extends QuestsEditorNumericPrompt {
-        
-        private final Quests plugin;
-        
+
         public QuestGuiDisplayPrompt(final ConversationContext context) {
             super(context);
-            this.plugin = (Quests)context.getPlugin();
         }
         
         private final int size = 3;
@@ -805,11 +802,9 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
                 ItemStackPrompt.clearSessionData(context);
             }
 
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenNumericPromptEvent event
-                        = new QuestsEditorPostOpenNumericPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenNumericPromptEvent event
+                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
 
             final StringBuilder text = new StringBuilder(ChatColor.GOLD + getTitle(context) + "\n");
             if (context.getSessionData(CK.Q_GUIDISPLAY) != null) {
@@ -858,7 +853,8 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
         public String getTitle(final ConversationContext context) {
             return null;
         }
-        
+
+        @SuppressWarnings("unused")
         public ChatColor getNumberColor(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -869,7 +865,8 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
                 return null;
             }
         }
-        
+
+        @SuppressWarnings("unused")
         public String getSelectionText(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -917,7 +914,7 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
                 } else if (context.getSessionData(CK.Q_FINISH_MESSAGE) == null) {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("questEditorNeedFinishMessage"));
                     return new QuestMainPrompt(context);
-                } else if (new StageMenuPrompt(context).getStages(context) == 0) {
+                } else if (new QuestStageMenuPrompt(context).getStages(context) == 0) {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("questEditorNeedStages"));
                     return new QuestMainPrompt(context);
                 }
@@ -982,7 +979,8 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
         public String getTitle(final ConversationContext context) {
             return null;
         }
-        
+
+        @SuppressWarnings("unused")
         public ChatColor getNumberColor(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -993,7 +991,8 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
                 return null;
             }
         }
-        
+
+        @SuppressWarnings("unused")
         public String getSelectionText(final ConversationContext context, final int number) {
             switch (number) {
             case 1:

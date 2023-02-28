@@ -22,12 +22,12 @@ import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.Prompt;
 import org.jetbrains.annotations.NotNull;
 
-public class StageMenuPrompt extends QuestsEditorNumericPrompt {
+public class QuestStageMenuPrompt extends QuestsEditorNumericPrompt {
 
     private final Quests plugin;
     private final int size = 2;
 
-    public StageMenuPrompt(final ConversationContext context) {
+    public QuestStageMenuPrompt(final ConversationContext context) {
         super(context);
         this.plugin = (Quests)context.getPlugin();
     }
@@ -79,11 +79,9 @@ public class StageMenuPrompt extends QuestsEditorNumericPrompt {
 
     @Override
     public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
-        if (context.getPlugin() != null) {
-            final QuestsEditorPostOpenNumericPromptEvent event
-                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
-            context.getPlugin().getServer().getPluginManager().callEvent(event);
-        }
+        final QuestsEditorPostOpenNumericPromptEvent event
+                = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+        plugin.getServer().getPluginManager().callEvent(event);
         
         final StringBuilder text = new StringBuilder(ChatColor.LIGHT_PURPLE + "- " + getTitle(context) + " -");
         for (int i = 1; i <= (getStages(context) + size); i++) {
@@ -99,14 +97,14 @@ public class StageMenuPrompt extends QuestsEditorNumericPrompt {
         final int stages = getStages(context);
         if (i > 0) {
             if (i < (stages + 1)) {
-                return new StageMainPrompt((i), context);
+                return new QuestStageMainPrompt((i), context);
             } else if (i == (stages + 1)) {
-                return new StageMainPrompt((stages + 1), context);
+                return new QuestStageMainPrompt((stages + 1), context);
             } else if (i == (stages + 2)) {
                 return plugin.getQuestFactory().returnToMenu(context);
             }
         }
-        return new StageMenuPrompt(context);
+        return new QuestStageMenuPrompt(context);
     }
 
     public int getStages(final ConversationContext context) {

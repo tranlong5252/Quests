@@ -16,12 +16,8 @@ import me.blackvein.quests.Quests;
 import me.blackvein.quests.convo.conditions.ConditionsEditorNumericPrompt;
 import me.blackvein.quests.convo.conditions.ConditionsEditorStringPrompt;
 import me.blackvein.quests.convo.conditions.main.ConditionMainPrompt;
-import me.blackvein.quests.convo.quests.QuestsEditorNumericPrompt;
-import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
 import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenStringPromptEvent;
-import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
-import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
 import me.blackvein.quests.util.CK;
 import me.blackvein.quests.util.Lang;
 import me.blackvein.quests.util.MiscUtil;
@@ -35,11 +31,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class EntityPrompt extends ConditionsEditorNumericPrompt {
+public class ConditionEntityPrompt extends ConditionsEditorNumericPrompt {
     
     private final Quests plugin;
     
-    public EntityPrompt(final ConversationContext context) {
+    public ConditionEntityPrompt(final ConversationContext context) {
         super(context);
         this.plugin = (Quests)context.getPlugin();
     }
@@ -128,11 +124,9 @@ public class EntityPrompt extends ConditionsEditorNumericPrompt {
 
     @Override
     public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
-        if (context.getPlugin() != null) {
-            final ConditionsEditorPostOpenNumericPromptEvent event
-                    = new ConditionsEditorPostOpenNumericPromptEvent(context, this);
-            context.getPlugin().getServer().getPluginManager().callEvent(event);
-        }
+        final ConditionsEditorPostOpenNumericPromptEvent event
+                = new ConditionsEditorPostOpenNumericPromptEvent(context, this);
+        plugin.getServer().getPluginManager().callEvent(event);
         
         final StringBuilder text = new StringBuilder(ChatColor.AQUA + "- " + getTitle(context) + " -");
         for (int i = 1; i <= size; i++) {
@@ -147,7 +141,7 @@ public class EntityPrompt extends ConditionsEditorNumericPrompt {
     protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
         switch(input.intValue()) {
         case 1:
-            return new EntitiesPrompt(context);
+            return new ConditionEntitiesPrompt(context);
         case 2:
             return new ConditionNpcsPrompt(context);
         case 3:
@@ -158,13 +152,13 @@ public class EntityPrompt extends ConditionsEditorNumericPrompt {
                 return Prompt.END_OF_CONVERSATION;
             }
         default:
-            return new EntityPrompt(context);
+            return new ConditionEntityPrompt(context);
         }
     }
     
-    public class EntitiesPrompt extends ConditionsEditorStringPrompt {
+    public class ConditionEntitiesPrompt extends ConditionsEditorStringPrompt {
         
-        public EntitiesPrompt(final ConversationContext context) {
+        public ConditionEntitiesPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -180,11 +174,9 @@ public class EntityPrompt extends ConditionsEditorNumericPrompt {
         
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ConditionsEditorPostOpenStringPromptEvent event
-                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ConditionsEditorPostOpenStringPromptEvent event
+                    = new ConditionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
 
             final StringBuilder mobs = new StringBuilder(ChatColor.LIGHT_PURPLE + getTitle(context) + "\n");
             final List<EntityType> mobArr = new LinkedList<>(Arrays.asList(EntityType.values()));
@@ -223,16 +215,16 @@ public class EntityPrompt extends ConditionsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidMob")
                                     .replace("<input>", s));
-                            return new EntitiesPrompt(context);
+                            return new ConditionEntitiesPrompt(context);
                         }
                     } else {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidMob")
                                 .replace("<input>", s));
-                        return new EntitiesPrompt(context);
+                        return new ConditionEntitiesPrompt(context);
                     }
                 }
             }
-            return new EntityPrompt(context);
+            return new ConditionEntityPrompt(context);
         }
     }
     
@@ -253,21 +245,17 @@ public class EntityPrompt extends ConditionsEditorNumericPrompt {
         }
         
         @Override
-        public @NotNull String getPromptText(final ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ConditionsEditorPostOpenStringPromptEvent event
-                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+        public @NotNull String getPromptText(final @NotNull ConversationContext context) {
+            final ConditionsEditorPostOpenStringPromptEvent event
+                    = new ConditionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             if (context.getForWhom() instanceof Player) {
                 final Set<UUID> selectingNpcs = plugin.getQuestFactory().getSelectingNpcs();
                 selectingNpcs.add(((Player) context.getForWhom()).getUniqueId());
                 plugin.getQuestFactory().setSelectingNpcs(selectingNpcs);
-                return ChatColor.YELLOW + getQueryText(context) + "\n" + ChatColor.GOLD + Lang.get("npcHint");
-            } else {
-                return ChatColor.YELLOW + getQueryText(context);
             }
+            return ChatColor.YELLOW + getQueryText(context);
         }
 
         @Override
@@ -303,7 +291,7 @@ public class EntityPrompt extends ConditionsEditorNumericPrompt {
                 selectingNpcs.remove(((Player) context.getForWhom()).getUniqueId());
                 plugin.getQuestFactory().setSelectingNpcs(selectingNpcs);
             }
-            return new EntityPrompt(context);
+            return new ConditionEntityPrompt(context);
         }
     }
 }

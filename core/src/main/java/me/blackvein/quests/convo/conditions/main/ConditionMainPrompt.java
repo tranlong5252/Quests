@@ -17,9 +17,9 @@ import me.blackvein.quests.conditions.ICondition;
 import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.conditions.ConditionsEditorNumericPrompt;
 import me.blackvein.quests.convo.conditions.ConditionsEditorStringPrompt;
-import me.blackvein.quests.convo.conditions.tasks.EntityPrompt;
-import me.blackvein.quests.convo.conditions.tasks.PlayerPrompt;
-import me.blackvein.quests.convo.conditions.tasks.WorldPrompt;
+import me.blackvein.quests.convo.conditions.tasks.ConditionEntityPrompt;
+import me.blackvein.quests.convo.conditions.tasks.ConditionPlayerPrompt;
+import me.blackvein.quests.convo.conditions.tasks.ConditionWorldPrompt;
 import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.conditions.ConditionsEditorPostOpenStringPromptEvent;
 import me.blackvein.quests.quests.IQuest;
@@ -146,11 +146,11 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
         case 1:
             return new ConditionNamePrompt(context);
         case 2:
-            return new EntityPrompt(context);
+            return new ConditionEntityPrompt(context);
         case 3:
-            return new PlayerPrompt(context);
+            return new ConditionPlayerPrompt(context);
         case 4:
-            return new WorldPrompt(context);
+            return new ConditionWorldPrompt(context);
         case 5:
             return new ConditionPlaceholderListPrompt(context);
         case 6:
@@ -192,11 +192,9 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
         
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ConditionsEditorPostOpenStringPromptEvent event
-                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ConditionsEditorPostOpenStringPromptEvent event
+                    = new ConditionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -330,11 +328,9 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
         
         @Override
         public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ConditionsEditorPostOpenNumericPromptEvent event
-                        = new ConditionsEditorPostOpenNumericPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ConditionsEditorPostOpenNumericPromptEvent event
+                    = new ConditionsEditorPostOpenNumericPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             final StringBuilder text = new StringBuilder(ChatColor.AQUA + getTitle(context));
             for (int i = 1; i <= size; i++) {
@@ -403,11 +399,9 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
         
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ConditionsEditorPostOpenStringPromptEvent event
-                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ConditionsEditorPostOpenStringPromptEvent event
+                    = new ConditionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -453,11 +447,9 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
         
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ConditionsEditorPostOpenStringPromptEvent event
-                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ConditionsEditorPostOpenStringPromptEvent event
+                    = new ConditionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -508,7 +500,8 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
         public String getTitle(final ConversationContext context) {
             return null;
         }
-        
+
+        @SuppressWarnings("unused")
         public ChatColor getNumberColor(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -519,7 +512,8 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
                 return null;
             }
         }
-        
+
+        @SuppressWarnings("unused")
         public String getSelectionText(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -594,7 +588,8 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
         public String getTitle(final ConversationContext context) {
             return null;
         }
-        
+
+        @SuppressWarnings("unused")
         public ChatColor getNumberColor(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -605,7 +600,8 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
                 return null;
             }
         }
-        
+
+        @SuppressWarnings("unused")
         public String getSelectionText(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -624,11 +620,9 @@ public class ConditionMainPrompt extends ConditionsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ConditionsEditorPostOpenStringPromptEvent event
-                        = new ConditionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ConditionsEditorPostOpenStringPromptEvent event
+                    = new ConditionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             final StringBuilder text = new StringBuilder(ChatColor.YELLOW + getQueryText(context));
             for (int i = 1; i <= size; i++) {

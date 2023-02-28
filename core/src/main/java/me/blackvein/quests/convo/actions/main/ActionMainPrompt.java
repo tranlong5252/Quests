@@ -17,10 +17,10 @@ import me.blackvein.quests.actions.IAction;
 import me.blackvein.quests.convo.QuestsNumericPrompt;
 import me.blackvein.quests.convo.actions.ActionsEditorNumericPrompt;
 import me.blackvein.quests.convo.actions.ActionsEditorStringPrompt;
-import me.blackvein.quests.convo.actions.tasks.EffectPrompt;
-import me.blackvein.quests.convo.actions.tasks.PlayerPrompt;
-import me.blackvein.quests.convo.actions.tasks.TimerPrompt;
-import me.blackvein.quests.convo.actions.tasks.WeatherPrompt;
+import me.blackvein.quests.convo.actions.tasks.ActionEffectPrompt;
+import me.blackvein.quests.convo.actions.tasks.ActionPlayerPrompt;
+import me.blackvein.quests.convo.actions.tasks.ActionTimerPrompt;
+import me.blackvein.quests.convo.actions.tasks.ActionWeatherPrompt;
 import me.blackvein.quests.convo.generic.ItemStackPrompt;
 import me.blackvein.quests.entity.BukkitQuestMob;
 import me.blackvein.quests.events.editor.actions.ActionsEditorPostOpenNumericPromptEvent;
@@ -203,21 +203,25 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
         case 1:
             return new ActionNamePrompt(context);
         case 2:
-            return new PlayerPrompt(context);
+            return new ActionPlayerPrompt(context);
         case 3:
-            return new TimerPrompt(context);
+            return new ActionTimerPrompt(context);
         case 4:
-            return new EffectPrompt(context);
+            return new ActionEffectPrompt(context);
         case 5:
-            return new WeatherPrompt(context);
+            return new ActionWeatherPrompt(context);
         case 6:
             return new ActionMobListPrompt(context);
         case 7:
-            if (!plugin.hasLimitedAccess(context.getForWhom())) {
-                return new ActionDenizenPrompt(context);
+            if (plugin.getDependencies().getDenizenApi() != null) {
+                if (!plugin.hasLimitedAccess(context.getForWhom())) {
+                    return new ActionDenizenPrompt(context);
+                } else {
+                    context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("modeDeny")
+                            .replace("<mode>", Lang.get("trialMode")));
+                    return new ActionMainPrompt(context);
+                }
             } else {
-                context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("modeDeny")
-                        .replace("<mode>", Lang.get("trialMode")));
                 return new ActionMainPrompt(context);
             }
         case 8:
@@ -261,9 +265,7 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
             final ActionsEditorPostOpenStringPromptEvent event 
                     = new ActionsEditorPostOpenStringPromptEvent(context, this);
-            if (context.getPlugin() != null) {
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -786,9 +788,7 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
             final ActionsEditorPostOpenStringPromptEvent event
                     = new ActionsEditorPostOpenStringPromptEvent(context, this);
-            if (context.getPlugin() != null) {
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -834,9 +834,7 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
             final ActionsEditorPostOpenStringPromptEvent event
                     = new ActionsEditorPostOpenStringPromptEvent(context, this);
-            if (context.getPlugin() != null) {
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            plugin.getServer().getPluginManager().callEvent(event);
 
             final StringBuilder mobs = new StringBuilder(ChatColor.LIGHT_PURPLE + getTitle(context) + "\n");
             final EntityType[] mobArr = EntityType.values();
@@ -845,13 +843,13 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
                 if (!type.isAlive()) {
                     continue;
                 }
+                mobs.append(MiscUtil.snakeCaseToUpperCamelCase(mobArr[i].name()));
                 if (i < (mobArr.length - 1)) {
-                    mobs.append(MiscUtil.snakeCaseToUpperCamelCase(mobArr[i].name())).append(", ");
-                } else {
-                    mobs.append(MiscUtil.snakeCaseToUpperCamelCase(mobArr[i].name())).append("\n");
+                    mobs.append(ChatColor.GRAY).append(", ");
                 }
             }
-            return mobs.toString() + ChatColor.YELLOW + getQueryText(context);
+            mobs.append("\n").append(ChatColor.YELLOW).append(getQueryText(context));
+            return mobs.toString();
         }
 
         @Override
@@ -895,9 +893,7 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
             final ActionsEditorPostOpenStringPromptEvent event
                     = new ActionsEditorPostOpenStringPromptEvent(context, this);
-            if (context.getPlugin() != null) {
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -948,11 +944,9 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ActionsEditorPostOpenStringPromptEvent event
-                        = new ActionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ActionsEditorPostOpenStringPromptEvent event
+                    = new ActionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1010,11 +1004,9 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ActionsEditorPostOpenStringPromptEvent event
-                        = new ActionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ActionsEditorPostOpenStringPromptEvent event
+                    = new ActionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1065,11 +1057,9 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ActionsEditorPostOpenStringPromptEvent event
-                        = new ActionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ActionsEditorPostOpenStringPromptEvent event
+                    = new ActionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             final StringBuilder text = new StringBuilder(ChatColor.DARK_AQUA + "- " + getTitle(context) + " -");
             if (plugin.getDependencies().getDenizenApi() != null
@@ -1137,7 +1127,8 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
         public String getTitle(final ConversationContext context) {
             return null;
         }
-        
+
+        @SuppressWarnings("unused")
         public ChatColor getNumberColor(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -1148,7 +1139,8 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
                 return null;
             }
         }
-        
+
+        @SuppressWarnings("unused")
         public String getSelectionText(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -1167,11 +1159,9 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ActionsEditorPostOpenStringPromptEvent event
-                        = new ActionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ActionsEditorPostOpenStringPromptEvent event
+                    = new ActionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             final StringBuilder text = new StringBuilder(ChatColor.YELLOW + getQueryText(context));
             if (!modified.isEmpty()) {
@@ -1225,7 +1215,8 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
         public String getTitle(final ConversationContext context) {
             return null;
         }
-        
+
+        @SuppressWarnings("unused")
         public ChatColor getNumberColor(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -1236,7 +1227,8 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
                 return null;
             }
         }
-        
+
+        @SuppressWarnings("unused")
         public String getSelectionText(final ConversationContext context, final int number) {
             switch (number) {
             case 1:
@@ -1255,11 +1247,9 @@ public class ActionMainPrompt extends ActionsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final ActionsEditorPostOpenStringPromptEvent event
-                        = new ActionsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final ActionsEditorPostOpenStringPromptEvent event
+                    = new ActionsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             final StringBuilder text = new StringBuilder(ChatColor.YELLOW + getQueryText(context));
             for (int i = 1; i <= size; i++) {

@@ -12,9 +12,10 @@
 
 package me.blackvein.quests.convo.quests.objectives;
 
+import me.blackvein.quests.Quests;
 import me.blackvein.quests.convo.quests.QuestsEditorNumericPrompt;
 import me.blackvein.quests.convo.quests.QuestsEditorStringPrompt;
-import me.blackvein.quests.convo.quests.stages.StageMainPrompt;
+import me.blackvein.quests.convo.quests.stages.QuestStageMainPrompt;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenNumericPromptEvent;
 import me.blackvein.quests.events.editor.quests.QuestsEditorPostOpenStringPromptEvent;
 import me.blackvein.quests.util.CK;
@@ -29,12 +30,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedList;
 import java.util.List;
 
-public class BlocksPrompt extends QuestsEditorNumericPrompt {
+public class QuestBlocksPrompt extends QuestsEditorNumericPrompt {
+
+    private final Quests plugin;
     private final int stageNum;
     private final String pref;
 
-    public BlocksPrompt(final int stageNum, final ConversationContext context) {
+    public QuestBlocksPrompt(final int stageNum, final ConversationContext context) {
         super(context);
+        this.plugin = (Quests)context.getPlugin();
         this.stageNum = stageNum;
         this.pref = "stage" + stageNum;
     }
@@ -167,11 +171,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
     public @NotNull String getBasicPromptText(final ConversationContext context) {
         context.setSessionData(pref, Boolean.TRUE);
 
-        if (context.getPlugin() != null) {
-            final QuestsEditorPostOpenNumericPromptEvent event
-                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
-            context.getPlugin().getServer().getPluginManager().callEvent(event);
-        }
+        final QuestsEditorPostOpenNumericPromptEvent event
+                = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+        plugin.getServer().getPluginManager().callEvent(event);
 
         final StringBuilder text = new StringBuilder(ChatColor.AQUA + "- " + getTitle(context) + " -");
         for (int i = 1; i <= size; i++) {
@@ -186,28 +188,28 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
     protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
         switch(input.intValue()) {
         case 1:
-            return new BlocksBreakListPrompt(context);
+            return new QuestBlocksBreakListPrompt(context);
         case 2:
-            return new BlocksDamageListPrompt(context);
+            return new QuestBlocksDamageListPrompt(context);
         case 3:
-            return new BlocksPlaceListPrompt(context);
+            return new QuestBlocksPlaceListPrompt(context);
         case 4:
-            return new BlocksUseListPrompt(context);
+            return new QuestBlocksUseListPrompt(context);
         case 5:
             try {
-                return new StageMainPrompt(stageNum, context);
+                return new QuestStageMainPrompt(stageNum, context);
             } catch (final Exception e) {
                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("itemCreateCriticalError"));
                 return Prompt.END_OF_CONVERSATION;
             }
         default:
-            return new BlocksPrompt(stageNum, context);
+            return new QuestBlocksPrompt(stageNum, context);
         }
     }
     
-    public class BlocksBreakListPrompt extends QuestsEditorNumericPrompt {
+    public class QuestBlocksBreakListPrompt extends QuestsEditorNumericPrompt {
 
-        public BlocksBreakListPrompt(final ConversationContext context) {
+        public QuestBlocksBreakListPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -313,12 +315,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         
         @Override
         public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenNumericPromptEvent event
-                        = new QuestsEditorPostOpenNumericPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
-
+            final QuestsEditorPostOpenNumericPromptEvent event
+                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
 
             final StringBuilder text = new StringBuilder(ChatColor.GOLD + "- " + getTitle(context) + " -");
             for (int i = 1; i <= size; i++) {
@@ -334,17 +333,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
             switch(input.intValue()) {
             case 1:
-                return new BlockBreakNamesPrompt(context);
+                return new QuestBlockBreakNamesPrompt(context);
             case 2:
-                return new BlockBreakAmountsPrompt(context);
+                return new QuestBlockBreakAmountsPrompt(context);
             case 3:
-                return new BlockBreakDurabilityPrompt(context);
+                return new QuestBlockBreakDurabilityPrompt(context);
             case 4:
                 context.getForWhom().sendRawMessage(ChatColor.YELLOW + Lang.get("stageEditorObjectiveCleared"));
                 context.setSessionData(pref + CK.S_BREAK_NAMES, null);
                 context.setSessionData(pref + CK.S_BREAK_AMOUNTS, null);
                 context.setSessionData(pref + CK.S_BREAK_DURABILITY, null);
-                return new BlocksBreakListPrompt(context);
+                return new QuestBlocksBreakListPrompt(context);
             case 5:
                 final int one;
                 final int two;
@@ -374,20 +373,20 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         durability.add((short) 0);
                     }
                     context.setSessionData(pref + CK.S_BREAK_DURABILITY, durability);
-                    return new BlocksPrompt(stageNum, context);
+                    return new QuestBlocksPrompt(stageNum, context);
                 } else {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("listsNotSameSize"));
-                    return new BlocksBreakListPrompt(context);
+                    return new QuestBlocksBreakListPrompt(context);
                 }
             default:
-                return new BlocksPrompt(stageNum, context);
+                return new QuestBlocksPrompt(stageNum, context);
             }
         }
     }
 
-    public class BlockBreakNamesPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockBreakNamesPrompt extends QuestsEditorStringPrompt {
 
-        public BlockBreakNamesPrompt(final ConversationContext context) {
+        public QuestBlockBreakNamesPrompt(final ConversationContext context) {
             super(context);
         }
         
@@ -403,11 +402,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -430,17 +427,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                             } else {
                                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotSolid")
                                         .replace("<input>", s));
-                                return new BlockBreakNamesPrompt(context);
+                                return new QuestBlockBreakNamesPrompt(context);
                             }
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidBlockName")
                                     .replace("<input>", s));
-                            return new BlockBreakNamesPrompt(context);
+                            return new QuestBlockBreakNamesPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockBreakNamesPrompt(context);
+                        return new QuestBlockBreakNamesPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_BREAK_NAMES, names);
@@ -458,13 +455,13 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                 }
                 context.setSessionData(pref + CK.S_BREAK_AMOUNTS, amounts);
             }
-            return new BlocksBreakListPrompt(context);
+            return new QuestBlocksBreakListPrompt(context);
         }
     }
 
-    public class BlockBreakAmountsPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockBreakAmountsPrompt extends QuestsEditorStringPrompt {
 
-        public BlockBreakAmountsPrompt(final ConversationContext context) {
+        public QuestBlockBreakAmountsPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -480,12 +477,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
-
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -505,23 +499,23 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "1"));
-                            return new BlockBreakAmountsPrompt(context);
+                            return new QuestBlockBreakAmountsPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockBreakAmountsPrompt(context);
+                        return new QuestBlockBreakAmountsPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_BREAK_AMOUNTS, amounts);
             }
-            return new BlocksBreakListPrompt(context);
+            return new QuestBlocksBreakListPrompt(context);
         }
     }
 
-    public class BlockBreakDurabilityPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockBreakDurabilityPrompt extends QuestsEditorStringPrompt {
 
-        public BlockBreakDurabilityPrompt(final ConversationContext context) {
+        public QuestBlockBreakDurabilityPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -537,12 +531,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
-
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -562,23 +553,23 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "0"));
-                            return new BlockBreakDurabilityPrompt(context);
+                            return new QuestBlockBreakDurabilityPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockBreakDurabilityPrompt(context);
+                        return new QuestBlockBreakDurabilityPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_BREAK_DURABILITY, durability);
             }
-            return new BlocksBreakListPrompt(context);
+            return new QuestBlocksBreakListPrompt(context);
         }
     }
 
-    public class BlocksDamageListPrompt extends QuestsEditorNumericPrompt {
+    public class QuestBlocksDamageListPrompt extends QuestsEditorNumericPrompt {
         
-        public BlocksDamageListPrompt(final ConversationContext context) {
+        public QuestBlocksDamageListPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -684,11 +675,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         
         @Override
         public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenNumericPromptEvent event
-                        = new QuestsEditorPostOpenNumericPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenNumericPromptEvent event
+                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
 
             final StringBuilder text = new StringBuilder(ChatColor.GOLD + "- " + getTitle(context) + " -");
             for (int i = 1; i <= size; i++) {
@@ -704,17 +693,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
             switch(input.intValue()) {
             case 1:
-                return new BlockDamageNamesPrompt(context);
+                return new QuestBlockDamageNamesPrompt(context);
             case 2:
-                return new BlockDamageAmountsPrompt(context);
+                return new QuestBlockDamageAmountsPrompt(context);
             case 3:
-                return new BlockDamageDurabilityPrompt(context);
+                return new QuestBlockDamageDurabilityPrompt(context);
             case 4:
                 context.getForWhom().sendRawMessage(ChatColor.YELLOW + Lang.get("stageEditorObjectiveCleared"));
                 context.setSessionData(pref + CK.S_DAMAGE_NAMES, null);
                 context.setSessionData(pref + CK.S_DAMAGE_AMOUNTS, null);
                 context.setSessionData(pref + CK.S_DAMAGE_DURABILITY, null);
-                return new BlocksDamageListPrompt(context);
+                return new QuestBlocksDamageListPrompt(context);
             case 5:
                 final int one;
                 final int two;
@@ -744,20 +733,20 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         durability.add((short) 0);
                     }
                     context.setSessionData(pref + CK.S_DAMAGE_DURABILITY, durability);
-                    return new BlocksPrompt(stageNum, context);
+                    return new QuestBlocksPrompt(stageNum, context);
                 } else {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("listsNotSameSize"));
-                    return new BlocksDamageListPrompt(context);
+                    return new QuestBlocksDamageListPrompt(context);
                 }
             default:
-                return new BlocksPrompt(stageNum, context);
+                return new QuestBlocksPrompt(stageNum, context);
             }
         }
     }
 
-    public class BlockDamageNamesPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockDamageNamesPrompt extends QuestsEditorStringPrompt {
 
-        public BlockDamageNamesPrompt(final ConversationContext context) {
+        public QuestBlockDamageNamesPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -773,11 +762,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -800,17 +787,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                             } else {
                                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotSolid")
                                         .replace("<input>", s));
-                                return new BlockDamageNamesPrompt(context);
+                                return new QuestBlockDamageNamesPrompt(context);
                             }
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidBlockName")
                                     .replace("<input>", s));
-                            return new BlockDamageNamesPrompt(context);
+                            return new QuestBlockDamageNamesPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockDamageNamesPrompt(context);
+                        return new QuestBlockDamageNamesPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_DAMAGE_NAMES, names);
@@ -828,13 +815,13 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                 }
                 context.setSessionData(pref + CK.S_DAMAGE_AMOUNTS, amounts);
             }
-            return new BlocksDamageListPrompt(context);
+            return new QuestBlocksDamageListPrompt(context);
         }
     }
 
-    public class BlockDamageAmountsPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockDamageAmountsPrompt extends QuestsEditorStringPrompt {
 
-        public BlockDamageAmountsPrompt(final ConversationContext context) {
+        public QuestBlockDamageAmountsPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -850,11 +837,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -874,23 +859,23 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "1"));
-                            return new BlockDamageAmountsPrompt(context);
+                            return new QuestBlockDamageAmountsPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockDamageAmountsPrompt(context);
+                        return new QuestBlockDamageAmountsPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_DAMAGE_AMOUNTS, amounts);
             }
-            return new BlocksDamageListPrompt(context);
+            return new QuestBlocksDamageListPrompt(context);
         }
     }
 
-    public class BlockDamageDurabilityPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockDamageDurabilityPrompt extends QuestsEditorStringPrompt {
 
-        public BlockDamageDurabilityPrompt(final ConversationContext context) {
+        public QuestBlockDamageDurabilityPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -906,11 +891,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -930,23 +913,23 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "0"));
-                            return new BlockDamageDurabilityPrompt(context);
+                            return new QuestBlockDamageDurabilityPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockDamageDurabilityPrompt(context);
+                        return new QuestBlockDamageDurabilityPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_DAMAGE_DURABILITY, durability);
             }
-            return new BlocksDamageListPrompt(context);
+            return new QuestBlocksDamageListPrompt(context);
         }
     }
 
-    public class BlocksPlaceListPrompt extends QuestsEditorNumericPrompt {
+    public class QuestBlocksPlaceListPrompt extends QuestsEditorNumericPrompt {
 
-        public BlocksPlaceListPrompt(final ConversationContext context) {
+        public QuestBlocksPlaceListPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1052,11 +1035,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         
         @Override
         public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenNumericPromptEvent event
-                        = new QuestsEditorPostOpenNumericPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenNumericPromptEvent event
+                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
 
             final StringBuilder text = new StringBuilder(ChatColor.GOLD + "- " + getTitle(context) + " -");
             for (int i = 1; i <= size; i++) {
@@ -1072,17 +1053,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
             switch(input.intValue()) {
             case 1:
-                return new BlockPlaceNamesPrompt(context);
+                return new QuestBlockPlaceNamesPrompt(context);
             case 2:
-                return new BlockPlaceAmountsPrompt(context);
+                return new QuestBlockPlaceAmountsPrompt(context);
             case 3:
-                return new BlockPlaceDurabilityPrompt(context);
+                return new QuestBlockPlaceDurabilityPrompt(context);
             case 4:
                 context.getForWhom().sendRawMessage(ChatColor.YELLOW + Lang.get("stageEditorObjectiveCleared"));
                 context.setSessionData(pref + CK.S_PLACE_NAMES, null);
                 context.setSessionData(pref + CK.S_PLACE_AMOUNTS, null);
                 context.setSessionData(pref + CK.S_PLACE_DURABILITY, null);
-                return new BlocksPlaceListPrompt(context);
+                return new QuestBlocksPlaceListPrompt(context);
             case 5:
                 final int one;
                 final int two;
@@ -1112,20 +1093,20 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         durability.add((short) 0);
                     }
                     context.setSessionData(pref + CK.S_PLACE_DURABILITY, durability);
-                    return new BlocksPrompt(stageNum, context);
+                    return new QuestBlocksPrompt(stageNum, context);
                 } else {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("listsNotSameSize"));
-                    return new BlocksPlaceListPrompt(context);
+                    return new QuestBlocksPlaceListPrompt(context);
                 }
             default:
-                return new BlocksPrompt(stageNum, context);
+                return new QuestBlocksPrompt(stageNum, context);
             }
         }
     }
 
-    public class BlockPlaceNamesPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockPlaceNamesPrompt extends QuestsEditorStringPrompt {
 
-        public BlockPlaceNamesPrompt(final ConversationContext context) {
+        public QuestBlockPlaceNamesPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1141,11 +1122,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1168,17 +1147,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                             } else {
                                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotSolid")
                                         .replace("<input>", s));
-                                return new BlockPlaceNamesPrompt(context);
+                                return new QuestBlockPlaceNamesPrompt(context);
                             }
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidBlockName")
                                     .replace("<input>", s));
-                            return new BlockPlaceNamesPrompt(context);
+                            return new QuestBlockPlaceNamesPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockPlaceNamesPrompt(context);
+                        return new QuestBlockPlaceNamesPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_PLACE_NAMES, names);
@@ -1196,13 +1175,13 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                 }
                 context.setSessionData(pref + CK.S_PLACE_AMOUNTS, amounts);
             }
-            return new BlocksPlaceListPrompt(context);
+            return new QuestBlocksPlaceListPrompt(context);
         }
     }
 
-    public class BlockPlaceAmountsPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockPlaceAmountsPrompt extends QuestsEditorStringPrompt {
 
-        public BlockPlaceAmountsPrompt(final ConversationContext context) {
+        public QuestBlockPlaceAmountsPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1218,11 +1197,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1242,23 +1219,23 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "1"));
-                            return new BlockPlaceAmountsPrompt(context);
+                            return new QuestBlockPlaceAmountsPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockPlaceAmountsPrompt(context);
+                        return new QuestBlockPlaceAmountsPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_PLACE_AMOUNTS, amounts);
             }
-            return new BlocksPlaceListPrompt(context);
+            return new QuestBlocksPlaceListPrompt(context);
         }
     }
 
-    public class BlockPlaceDurabilityPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockPlaceDurabilityPrompt extends QuestsEditorStringPrompt {
 
-        public BlockPlaceDurabilityPrompt(final ConversationContext context) {
+        public QuestBlockPlaceDurabilityPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1274,11 +1251,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1298,23 +1273,23 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "0"));
-                            return new BlockPlaceDurabilityPrompt(context);
+                            return new QuestBlockPlaceDurabilityPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockPlaceDurabilityPrompt(context);
+                        return new QuestBlockPlaceDurabilityPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_PLACE_DURABILITY, durability);
             }
-            return new BlocksPlaceListPrompt(context);
+            return new QuestBlocksPlaceListPrompt(context);
         }
     }
 
-    public class BlocksUseListPrompt extends QuestsEditorNumericPrompt {
+    public class QuestBlocksUseListPrompt extends QuestsEditorNumericPrompt {
 
-        public BlocksUseListPrompt(final ConversationContext context) {
+        public QuestBlocksUseListPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1418,11 +1393,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         
         @Override
         public @NotNull String getBasicPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenNumericPromptEvent event
-                        = new QuestsEditorPostOpenNumericPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenNumericPromptEvent event
+                    = new QuestsEditorPostOpenNumericPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
 
             final StringBuilder text = new StringBuilder(ChatColor.GOLD + "- " + getTitle(context) + " -");
             for (int i = 1; i <= size; i++) {
@@ -1438,17 +1411,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
         protected Prompt acceptValidatedInput(final @NotNull ConversationContext context, final Number input) {
             switch(input.intValue()) {
             case 1:
-                return new BlockUseNamesPrompt(context);
+                return new QuestBlockUseNamesPrompt(context);
             case 2:
-                return new BlockUseAmountsPrompt(context);
+                return new QuestBlockUseAmountsPrompt(context);
             case 3:
-                return new BlockUseDurabilityPrompt(context);
+                return new QuestBlockUseDurabilityPrompt(context);
             case 4:
                 context.getForWhom().sendRawMessage(ChatColor.YELLOW + Lang.get("stageEditorObjectiveCleared"));
                 context.setSessionData(pref + CK.S_USE_NAMES, null);
                 context.setSessionData(pref + CK.S_USE_AMOUNTS, null);
                 context.setSessionData(pref + CK.S_USE_DURABILITY, null);
-                return new BlocksUseListPrompt(context);
+                return new QuestBlocksUseListPrompt(context);
             case 5:
                 final int one;
                 final int two;
@@ -1478,20 +1451,20 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         durability.add((short) 0);
                     }
                     context.setSessionData(pref + CK.S_USE_DURABILITY, durability);
-                    return new BlocksPrompt(stageNum, context);
+                    return new QuestBlocksPrompt(stageNum, context);
                 } else {
                     context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("listsNotSameSize"));
-                    return new BlocksUseListPrompt(context);
+                    return new QuestBlocksUseListPrompt(context);
                 }
             default:
-                return new BlocksPrompt(stageNum, context);
+                return new QuestBlocksPrompt(stageNum, context);
             }
         }
     }
 
-    public class BlockUseNamesPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockUseNamesPrompt extends QuestsEditorStringPrompt {
 
-        public BlockUseNamesPrompt(final ConversationContext context) {
+        public QuestBlockUseNamesPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1507,11 +1480,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1534,17 +1505,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                             } else {
                                 context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotSolid")
                                         .replace("<input>", s));
-                                return new BlockUseNamesPrompt(context);
+                                return new QuestBlockUseNamesPrompt(context);
                             }
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorInvalidBlockName")
                                     .replace("<input>", s));
-                            return new BlockUseNamesPrompt(context);
+                            return new QuestBlockUseNamesPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockUseNamesPrompt(context);
+                        return new QuestBlockUseNamesPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_USE_NAMES, names);
@@ -1562,13 +1533,13 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                 }
                 context.setSessionData(pref + CK.S_USE_AMOUNTS, amounts);
             }
-            return new BlocksUseListPrompt(context);
+            return new QuestBlocksUseListPrompt(context);
         }
     }
 
-    public class BlockUseAmountsPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockUseAmountsPrompt extends QuestsEditorStringPrompt {
 
-        public BlockUseAmountsPrompt(final ConversationContext context) {
+        public QuestBlockUseAmountsPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1584,11 +1555,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1608,23 +1577,23 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "1"));
-                            return new BlockUseAmountsPrompt(context);
+                            return new QuestBlockUseAmountsPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockUseAmountsPrompt(context);
+                        return new QuestBlockUseAmountsPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_USE_AMOUNTS, amounts);
             }
-            return new BlocksUseListPrompt(context);
+            return new QuestBlocksUseListPrompt(context);
         }
     }
 
-    public class BlockUseDurabilityPrompt extends QuestsEditorStringPrompt {
+    public class QuestBlockUseDurabilityPrompt extends QuestsEditorStringPrompt {
 
-        public BlockUseDurabilityPrompt(final ConversationContext context) {
+        public QuestBlockUseDurabilityPrompt(final ConversationContext context) {
             super(context);
         }
 
@@ -1640,11 +1609,9 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public @NotNull String getPromptText(final @NotNull ConversationContext context) {
-            if (context.getPlugin() != null) {
-                final QuestsEditorPostOpenStringPromptEvent event
-                        = new QuestsEditorPostOpenStringPromptEvent(context, this);
-                context.getPlugin().getServer().getPluginManager().callEvent(event);
-            }
+            final QuestsEditorPostOpenStringPromptEvent event
+                    = new QuestsEditorPostOpenStringPromptEvent(context, this);
+            plugin.getServer().getPluginManager().callEvent(event);
             
             return ChatColor.YELLOW + getQueryText(context);
         }
@@ -1664,17 +1631,17 @@ public class BlocksPrompt extends QuestsEditorNumericPrompt {
                         } else {
                             context.getForWhom().sendRawMessage(ChatColor.RED 
                                     + Lang.get("invalidMinimum").replace("<number>", "0"));
-                            return new BlockUseDurabilityPrompt(context);
+                            return new QuestBlockUseDurabilityPrompt(context);
                         }
                     } catch (final NumberFormatException e) {
                         context.getForWhom().sendRawMessage(ChatColor.RED + Lang.get("stageEditorNotListOfNumbers")
                                 .replace("<data>", s));
-                        return new BlockUseDurabilityPrompt(context);
+                        return new QuestBlockUseDurabilityPrompt(context);
                     }
                 }
                 context.setSessionData(pref + CK.S_USE_DURABILITY, durability);
             }
-            return new BlocksUseListPrompt(context);
+            return new QuestBlocksUseListPrompt(context);
         }
     }
 }
