@@ -29,6 +29,7 @@ import me.blackvein.quests.convo.misc.NpcOfferQuestPrompt;
 import me.blackvein.quests.dependencies.DenizenTrigger;
 import me.blackvein.quests.dependencies.IDependencies;
 import me.blackvein.quests.entity.BukkitQuestMob;
+import me.blackvein.quests.entity.CountableMob;
 import me.blackvein.quests.entity.QuestMob;
 import me.blackvein.quests.events.misc.MiscPostQuestAcceptEvent;
 import me.blackvein.quests.exceptions.ActionFormatException;
@@ -48,9 +49,11 @@ import me.blackvein.quests.listeners.ZnpcsListener;
 import me.blackvein.quests.logging.QuestsLog4JFilter;
 import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.player.IQuester;
+import me.blackvein.quests.quests.BukkitObjective;
 import me.blackvein.quests.quests.BukkitQuestFactory;
 import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.quests.IStage;
+import me.blackvein.quests.quests.Objective;
 import me.blackvein.quests.quests.Options;
 import me.blackvein.quests.quests.Planner;
 import me.blackvein.quests.quests.QuestFactory;
@@ -557,10 +560,12 @@ public class Quests extends JavaPlugin implements QuestsAPI {
      *
      * @param questNpcUuids a collection of UUIDs
      */
+    @SuppressWarnings("unused")
     public void setQuestNpcUuids(final Collection<UUID> questNpcUuids) {
         this.questNpcUuids = new ConcurrentSkipListSet<>(questNpcUuids);
     }
 
+    @SuppressWarnings("unused")
     public CommandExecutor getCommandExecutor() {
         return cmdExecutor;
     }
@@ -653,16 +658,20 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             super(context);
         }
 
-        private final int size = 2;
+        @Override
+        public ConversationContext getConversationContext() {
+            return context;
+        }
 
         public int getSize() {
-            return size;
+            return 2;
         }
 
         public String getTitle(final ConversationContext context) {
             return null;
         }
 
+        @SuppressWarnings("unused")
         public ChatColor getNumberColor(final ConversationContext context, final int number) {
             switch (number) {
                 case 1:
@@ -674,6 +683,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
         }
 
+        @SuppressWarnings("unused")
         public String getSelectionText(final ConversationContext context, final int number) {
             switch (number) {
                 case 1:
@@ -1080,7 +1090,8 @@ public class Quests extends JavaPlugin implements QuestsAPI {
      * Show applicable objectives for the current stage of a player's quest.<p>
      * 
      * Respects PlaceholderAPI and translations, when enabled.
-     * 
+     *
+     * @deprecated Use {@link Quester#showCurrentObjectives(IQuest, IQuester, boolean)}
      * @param quest The quest to get current stage objectives of
      * @param quester The player to show current stage objectives to
      * @param ignoreOverrides Whether to ignore objective-overrides
@@ -1088,7 +1099,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     @SuppressWarnings("deprecation")
     public void showObjectives(final IQuest quest, final IQuester quester, final boolean ignoreOverrides) {
         if (quest == null) {
-            getLogger().severe("Quest was null when getting objectives for " + quester.getLastKnownName());
+            getLogger().severe("Quest was null when showing objectives for " + quester.getLastKnownName());
             return;
         }
         if (quester.getQuestData(quest) == null) {
@@ -1096,7 +1107,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             return;
         }
         final IStage stage = quester.getCurrentStage(quest);
-        if (quester.getCurrentStage(quest) == null) {
+        if (stage == null) {
             getLogger().warning("Current stage was null when showing objectives for " + quest.getName());
             return;
         }
@@ -1246,6 +1257,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int amt = is.getAmount();
             final ChatColor color = crafted < amt ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                craftIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "craftItem");
@@ -1275,6 +1287,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int amt = is.getAmount();
             final ChatColor color = smelted < amt ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                smeltIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "smeltItem");
@@ -1304,6 +1317,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int amt = is.getAmount();
             final ChatColor color = enchanted < amt ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                enchantIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "enchItem");
@@ -1350,6 +1364,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int amt = is.getAmount();
             final ChatColor color = brewed < amt ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                brewIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "brewItem");
@@ -1385,6 +1400,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int amt = is.getAmount();
             final ChatColor color = consumed < amt ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                consumeIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "consumeItem");
@@ -1421,6 +1437,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final UUID npc = stage.getItemDeliveryTargets().get(deliverIndex);
             final ChatColor color = delivered < toDeliver ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                deliverIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "deliver")
@@ -1450,6 +1467,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
             final ChatColor color = !interacted ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                interactIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "talkTo")
@@ -1469,6 +1487,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int toNpcKill = stage.getNpcNumToKill().get(npcKillIndex);
             final ChatColor color = npcKilled < toNpcKill ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                npcKillIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "kill");
@@ -1498,6 +1517,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int toMobKill = stage.getMobNumToKill().get(mobKillIndex);
             final ChatColor color = mobKilled < toMobKill ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                mobKillIndex++;
                 continue;
             }
             String message = color + "- ";
@@ -1536,6 +1556,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
             final ChatColor color = tamed < toTame ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                tameIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "tame");
@@ -1598,6 +1619,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
             final ChatColor color = sheared < toShear ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                shearIndex++;
                 continue;
             }
             String message = color + "- " + Lang.get(quester.getPlayer(), "shearSheep");
@@ -1650,6 +1672,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
             final ChatColor color = !said ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                passIndex++;
                 continue;
             }
             final String message = color + "- " + s;
@@ -1665,6 +1688,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             final int toClear = stage.getCustomObjectiveCounts().get(customIndex);
             final ChatColor color = cleared < toClear ? ChatColor.GREEN : ChatColor.GRAY;
             if (!settings.canShowCompletedObjs() && color.equals(ChatColor.GRAY)) {
+                customIndex++;
                 continue;
             }
             String message = color + "- " + co.getDisplay();
@@ -1695,6 +1719,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     /**
      * Show all of a player's conditions for the current stage of a quest.<p>
      *
+     * @deprecated Use {@link Quester#showCurrentConditions(IQuest, IQuester)}
      * @param quest The quest to get current stage objectives of
      * @param quester The player to show current stage objectives to
      */
@@ -1794,7 +1819,8 @@ public class Quests extends JavaPlugin implements QuestsAPI {
     
     /**
      * Show the player a list of their available quests
-     * 
+     *
+     * @deprecated Use {@link Quester#listQuests(IQuester, int)}
      * @param quester Quester to show the list
      * @param page Page to display, with 7 quests per page
      */
