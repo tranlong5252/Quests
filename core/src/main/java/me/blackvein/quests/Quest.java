@@ -43,12 +43,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class Quest implements IQuest {
@@ -69,6 +65,9 @@ public class Quest implements IQuest {
     private final BukkitPlanner planner = new BukkitPlanner();
     private final BukkitRewards rewards = new BukkitRewards();
     private final BukkitOptions options = new BukkitOptions();
+    private boolean randomStage = false;
+    private int randomStageAmount = 1;
+    private LinkedList<Integer> questTodo = new LinkedList<>();
 
     public Quest(final Quests plugin) {
         this.plugin = plugin;
@@ -247,13 +246,14 @@ public class Quest implements IQuest {
             if (currentStage.getFinishAction() != null) {
                 currentStage.getFinishAction().fire(quester, this);
             }
-            if (quester.getCurrentQuestsTemp().get(this) == (orderedStages.size() - 1)) {
+            if (questTodo.size() <= 1) {
                 if (currentStage.getScript() != null) {
                     plugin.getDenizenTrigger().runDenizenScript(currentStage.getScript(), quester, null);
                 }
                 completeQuest(quester);
             } else {
-                setStage(quester, quester.getCurrentQuestsTemp().get(this) + 1);
+                questTodo.removeFirst();
+                setStage(quester, questTodo.get(0));
             }
             if (quester.getQuestData(this) != null) {
                 quester.getQuestData(this).setDelayStartTime(0);
@@ -1095,6 +1095,26 @@ public class Quest implements IQuest {
         return isInRegionStart(quester.getPlayer());
     }
 
+    @Override
+    public boolean randomStage() {
+        return randomStage;
+    }
+
+    @Override
+    public void setRandomStage(boolean randomStage) {
+        this.randomStage = randomStage;
+    }
+
+    @Override
+    public int randomStageAmount() {
+        return randomStageAmount;
+    }
+
+    @Override
+    public void setRandomStageAmount(int randomStageAmount) {
+        this.randomStageAmount = randomStageAmount;
+    }
+
     /**
      * Checks if player is in WorldGuard region start
      * 
@@ -1107,5 +1127,13 @@ public class Quest implements IQuest {
         }
         return plugin.getDependencies().getWorldGuardApi()
                 .getApplicableRegionsIDs(player.getWorld(), player.getLocation()).contains(regionStart);
+    }
+
+    public LinkedList<Integer> getQuestTodo() {
+        return questTodo;
+    }
+
+    public void setQuestTodo(LinkedList<Integer> questTodo) {
+        this.questTodo = questTodo;
     }
 }

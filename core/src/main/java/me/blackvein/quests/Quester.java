@@ -763,10 +763,22 @@ public class Quester implements IQuester {
                 return;
             }
         }
+        List<Integer> stages = new ArrayList<>();
+        if (quest.randomStage()) {
+            while (new HashSet<>(stages).size() < quest.randomStageAmount()) {
+                stages.add(new Random().nextInt(quest.getStages().size()));
+            }
+        } else {
+            for (int i = 0; i < quest.getStages().size(); i++) {
+                stages.add(i);
+            }
+        }
+        quest.setQuestTodo(new LinkedList<>(new HashSet<>(stages)));
+        int stageIndex = quest.getQuestTodo().get(0);
         if (quest.testRequirements(offlinePlayer) || ignoreRequirements) {
-            addEmptiesFor(quest, 0);
+            addEmptiesFor(quest, stageIndex);
             try {
-                currentQuests.put(quest, 0);
+                currentQuests.put(quest, stageIndex);
                 if (plugin.getSettings().getConsoleLogging() > 1) {
                     plugin.getLogger().info(getPlayer().getUniqueId() + " started quest " + quest.getName());
                 }
@@ -774,7 +786,7 @@ public class Quester implements IQuester {
                 plugin.getLogger().severe("Unable to add quest" + quest.getName() + " for player " + offlinePlayer.getName()
                         + ". Consider resetting player data or report on Github");
             }
-            final IStage stage = quest.getStage(0);
+            final IStage stage = quest.getStage(stageIndex);
             if (!ignoreRequirements) {
                 final Requirements requirements = quest.getRequirements();
                 if (requirements.getMoney() > 0) {

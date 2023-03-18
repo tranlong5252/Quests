@@ -103,4 +103,16 @@ public interface IQuest extends Comparable<IQuest> {
     boolean isInRegion(final IQuester quester);
 
     boolean isInRegionStart(final IQuester quester);
+
+    boolean randomStage();
+
+    void setRandomStage(final boolean randomStage);
+
+    int randomStageAmount();
+
+    void setRandomStageAmount(final int randomStageAmount);
+
+    LinkedList<Integer> getQuestTodo();
+
+    void setQuestTodo(final LinkedList<Integer> questTodoList);
 }

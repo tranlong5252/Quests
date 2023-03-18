@@ -29,7 +29,6 @@ import me.blackvein.quests.convo.misc.NpcOfferQuestPrompt;
 import me.blackvein.quests.dependencies.DenizenTrigger;
 import me.blackvein.quests.dependencies.IDependencies;
 import me.blackvein.quests.entity.BukkitQuestMob;
-import me.blackvein.quests.entity.CountableMob;
 import me.blackvein.quests.entity.QuestMob;
 import me.blackvein.quests.events.misc.MiscPostQuestAcceptEvent;
 import me.blackvein.quests.exceptions.ActionFormatException;
@@ -49,11 +48,9 @@ import me.blackvein.quests.listeners.ZnpcsListener;
 import me.blackvein.quests.logging.QuestsLog4JFilter;
 import me.blackvein.quests.module.ICustomObjective;
 import me.blackvein.quests.player.IQuester;
-import me.blackvein.quests.quests.BukkitObjective;
 import me.blackvein.quests.quests.BukkitQuestFactory;
 import me.blackvein.quests.quests.IQuest;
 import me.blackvein.quests.quests.IStage;
-import me.blackvein.quests.quests.Objective;
 import me.blackvein.quests.quests.Options;
 import me.blackvein.quests.quests.Planner;
 import me.blackvein.quests.quests.QuestFactory;
@@ -2052,6 +2049,8 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 throw new QuestFormatException("npc-giver-id has invalid NPC ID " + id, questKey);
             }
         }
+        quest.setRandomStage(config.getBoolean("quests." + questKey + ".random-stage", false));
+        quest.setRandomStageAmount(config.getInt("quests." + questKey + ".random-stage-amount"));
         if (config.contains("quests." + questKey + ".block-start")) {
             final String blockStart = config.getString("quests." + questKey + ".block-start");
             if (blockStart != null) {
