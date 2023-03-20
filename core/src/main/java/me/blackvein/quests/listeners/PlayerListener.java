@@ -187,7 +187,8 @@ public class PlayerListener implements Listener {
                     if (event.getClickedBlock() == null) {
                         return;
                     }
-                    if (event.getClickedBlock().getType().name().equals("LECTERN")) {
+                    if (event.getClickedBlock().getType().name().equals("LECTERN")
+                            || event.getClickedBlock().getType().name().equals("CHISELED_BOOKSHELF")) {
                         event.setCancelled(true);
                         Lang.send(player, ChatColor.RED + Lang.get(event.getPlayer(), "journalDenied")
                                 .replace("<journal>", Lang.get(event.getPlayer(), "journalTitle")));
@@ -696,7 +697,6 @@ public class PlayerListener implements Listener {
             }
             final IQuester quester = plugin.getQuester(damager.getUniqueId());
             final ObjectiveType type = ObjectiveType.KILL_MOB;
-            final Set<String> dispatchedQuestIDs = new HashSet<>();
             for (final IQuest quest : plugin.getLoadedQuests()) {
                 if (!quester.meetsCondition(quest, true)) {
                     continue;
@@ -793,7 +793,6 @@ public class PlayerListener implements Listener {
             }
             final IQuester quester = plugin.getQuester(damager.getUniqueId());
             final ObjectiveType type = ObjectiveType.KILL_PLAYER;
-            final Set<String> dispatchedQuestIDs = new HashSet<>();
             for (final IQuest quest : plugin.getLoadedQuests()) {
                 if (!quester.meetsCondition(quest, true)) {
                     continue;
