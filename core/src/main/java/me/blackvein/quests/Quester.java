@@ -2254,7 +2254,7 @@ public class Quester implements IQuester {
             plugin.getLogger().warning("Quest data was null when showing objectives for " + quest.getName());
             return;
         }
-        int customIndex = 0;
+        /*int customIndex = 0;
         for (final ICustomObjective customObjective : stage.getCustomObjectives()) {
             int progress = data.customObjectiveCounts.size() > customIndex
                     ? data.customObjectiveCounts.get(customIndex) : 0;
@@ -2286,7 +2286,7 @@ public class Quester implements IQuester {
             }
             quester.sendMessage(ConfigUtil.parseString(message));
             customIndex++;
-        }
+        }*/
     }
     
     /**
