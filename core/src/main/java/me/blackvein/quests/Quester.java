@@ -890,7 +890,7 @@ public class Quester implements IQuester {
             if (settings.canConfirmAbandon()) {
                 final ConversationFactory cf = new ConversationFactory(plugin).withModality(false)
                         .withPrefix(context -> ChatColor.GRAY.toString())
-                        .withFirstPrompt(new QuestAbandonPrompt()).withTimeout(settings.getAcceptTimeout())
+                        .withFirstPrompt(new QuestAbandonPrompt(plugin)).withTimeout(settings.getAcceptTimeout())
                         .thatExcludesNonPlayersWithMessage("Console may not perform this conversation!")
                         .addConversationAbandonedListener(plugin.getConvoListener());
                 cf.buildConversation(getPlayer()).begin();
@@ -1069,18 +1069,25 @@ public class Quester implements IQuester {
                 finishedRequirements.add(ChatColor.GRAY + "" + requirements.getQuestPoints() + " " + Lang.get("questPoints"));
             }
         }
-        for (final IQuest q : requirements.getNeededQuests()) {
+        for (final IQuest q : completedQuests) {
             if (q != null) {
-                if (getCompletedQuestsTemp().contains(q)) {
-                    finishedRequirements.add(ChatColor.GREEN + q.getName());
-                } else {
-                    unfinishedRequirements.add(ChatColor.GRAY + q.getName());
+                if (!requirements.getNeededQuestIds().isEmpty()) {
+                    if (requirements.getNeededQuestIds().contains(q.getId())) {
+                        finishedRequirements.add(ChatColor.GREEN + q.getName());
+                    } else {
+                        unfinishedRequirements.add(ChatColor.GRAY + q.getName());
+                    }
+                }
+                if (!requirements.getBlockQuestIds().isEmpty()) {
+                    if (requirements.getBlockQuestIds().contains(q.getId())) {
+                        current.add(ChatColor.RED + quest.getName());
+                    }
                 }
             }
         }
-        for (final IQuest q : requirements.getBlockQuests()) {
+        for (final IQuest q : currentQuests.keySet()) {
             if (q != null) {
-                if (completedQuests.contains(q) || currentQuests.containsKey(q)) {
+                if (requirements.getBlockQuestIds().contains(q.getId())) {
                     current.add(ChatColor.RED + quest.getName());
                 }
             }

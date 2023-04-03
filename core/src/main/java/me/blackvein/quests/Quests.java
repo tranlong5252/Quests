@@ -2386,20 +2386,16 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 final List<String> nodes = config.getStringList("quests." + questKey + ".requirements.quest-blocks");
                 boolean failed = false;
                 String failedQuest = "NULL";
-                final List<IQuest> temp = new LinkedList<>();
+                final List<String> temp = new LinkedList<>();
                 for (final String node : nodes) {
                     boolean done = false;
                     for (final String id : questsSection.getKeys(false)) {
-                        final String node2 = config.getString("quests." + id + ".name");
-                        if (node2 != null && (id.equals(node) || node2.equalsIgnoreCase(node)
-                                || ChatColor.stripColor(node2).equalsIgnoreCase(ChatColor.stripColor(node)))) {
-                            if (getQuestTemp(node) != null) {
-                                temp.add(getQuestTemp(node));
-                            } else if (getQuestByIdTemp(node) != null) {
-                                temp.add(getQuestByIdTemp(node));
+                        if (id.equals(node)) {
+                            if (getQuestByIdTemp(node) != null) {
+                                temp.add(node);
                             } else {
-                                throw new QuestFormatException("Requirement quest-blocks has unknown quest name/id "
-                                        + node + ", place it earlier in file so it loads first", questKey);
+                                throw new QuestFormatException("Requirement quest-blocks has unknown quest ID "
+                                        + node + ", manually update it to a valid ID", questKey);
                             }
                             done = true;
                             break;
@@ -2411,9 +2407,9 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                         break;
                     }
                 }
-                requires.setBlockQuests(temp);
+                requires.setBlockQuestIds(temp);
                 if (failed) {
-                    throw new QuestFormatException("Requirement quest-blocks has invalid quest name/id " + failedQuest,
+                    throw new QuestFormatException("Requirement quest-blocks has invalid quest ID " + failedQuest,
                             questKey);
                 }
             } else {
@@ -2425,20 +2421,16 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 final List<String> nodes = config.getStringList("quests." + questKey + ".requirements.quests");
                 boolean failed = false;
                 String failedQuest = "NULL";
-                final List<IQuest> temp = new LinkedList<>();
+                final List<String> temp = new LinkedList<>();
                 for (final String node : nodes) {
                     boolean done = false;
                     for (final String id : questsSection.getKeys(false)) {
-                        final String node2 = config.getString("quests." + id + ".name");
-                        if (node2 != null && (id.equals(node) || node2.equalsIgnoreCase(node)
-                                || ChatColor.stripColor(node2).equalsIgnoreCase(ChatColor.stripColor(node)))) {
-                            if (getQuestTemp(node) != null) {
-                                temp.add(getQuestTemp(node));
-                            } else if (getQuestByIdTemp(node) != null) {
-                                temp.add(getQuestByIdTemp(node));
+                        if (id.equals(node)) {
+                            if (getQuestByIdTemp(node) != null) {
+                                temp.add(node);
                             } else {
-                                throw new QuestFormatException("Requirement quests has unknown quest name " 
-                                        + node + ", place it earlier in file so it loads first", questKey);
+                                throw new QuestFormatException("Requirement quests has unknown quest ID "
+                                        + node + ", manually update it to a valid ID", questKey);
                             }
                             done = true;
                             break;
@@ -2450,9 +2442,9 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                         break;
                     }
                 }
-                requires.setNeededQuests(temp);
+                requires.setNeededQuestIds(temp);
                 if (failed) {
-                    throw new QuestFormatException("Requirement quests has invalid quest name/id "
+                    throw new QuestFormatException("Requirement quests has invalid quest ID "
                             + failedQuest, questKey);
                 }
             } else {
@@ -3440,18 +3432,18 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                             final List<Integer> mobAmounts = config.getIntegerList("quests." + questKey + ".stages.ordered." 
                                     + stageNum + ".mob-tame-amounts");
                             for (final String mob : mobs) {
-                                if (mob != null) {
-                                    final Class<? extends Entity> ec = EntityType.valueOf(mob.toUpperCase())
-                                            .getEntityClass();
+                                final EntityType type = MiscUtil.getProperMobType(mob);
+                                if (type != null) {
+                                    final Class<? extends Entity> ec = type.getEntityClass();
                                     if (ec != null && Tameable.class.isAssignableFrom(ec)) {
-                                        oStage.addMobToTame(EntityType.valueOf(mob.toUpperCase()));
+                                        oStage.addMobToTame(type);
                                         oStage.addMobNumToTame(mobAmounts.get(mobs.indexOf(mob)));
                                     } else {
                                         throw new StageFormatException("mobs-to-tame has invalid tameable mob " + mob,
                                                 quest, stageNum);
                                     }
                                 } else {
-                                    throw new StageFormatException("mobs-to-tame has invalid mob", quest, stageNum);
+                                    throw new StageFormatException("mobs-to-tame has invalid mob name " + mob, quest, stageNum);
                                 }
                             }
                         } else {
