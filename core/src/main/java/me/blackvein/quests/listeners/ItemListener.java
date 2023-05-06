@@ -28,6 +28,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionType;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -130,7 +132,8 @@ public class ItemListener implements Listener {
                     }
                 }
             } else if (event.getInventory().getType() == InventoryType.BREWING) {
-                if (event.getSlotType() == SlotType.CRAFTING) {
+                if (event.getSlotType() == SlotType.CRAFTING
+                        || event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
                     final IQuester quester = plugin.getQuester(player.getUniqueId());
                     final ObjectiveType type = ObjectiveType.BREW_ITEM;
                     final Set<String> dispatchedQuestIDs = new HashSet<>();
@@ -141,13 +144,17 @@ public class ItemListener implements Listener {
                         
                         if (quester.getCurrentQuestsTemp().containsKey(quest)
                                 && quester.getCurrentStage(quest).containsObjective(type)) {
-                            quester.brewItem(quest, event.getCurrentItem());
+                            if (isAllowedBrewingAction(event)) {
+                                quester.brewItem(quest, event.getCurrentItem());
+                            }
                         }
                         
                         dispatchedQuestIDs.addAll(quester.dispatchMultiplayerEverything(quest, type,
                                 (final IQuester q, final IQuest cq) -> {
                             if (!dispatchedQuestIDs.contains(cq.getId())) {
-                                q.brewItem(cq, event.getCurrentItem());
+                                if (isAllowedBrewingAction(event)) {
+                                    q.brewItem(cq, event.getCurrentItem());
+                                }
                             }
                             return null;
                         }));
@@ -155,6 +162,44 @@ public class ItemListener implements Listener {
                 }
             }
         }
+    }
+
+    public boolean isAllowedBrewingAction(final InventoryClickEvent event) {
+        if (event.getCursor() != null && isWaterBottle(event.getCursor())) {
+            return true;
+        }
+        final int slot = event.getRawSlot();
+        final InventoryAction action = event.getAction();
+        // Prevent shift-click into Brewing Stand
+        if (event.getSlotType() != SlotType.CRAFTING && action.equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
+            event.setCancelled(true);
+            return false;
+        }
+        // Prevent placing into Brewing Stand
+        if (slot == 0 || slot == 1 || slot == 2) {
+            if (action.equals(InventoryAction.PLACE_ONE) || action.equals(InventoryAction.PLACE_SOME)
+                    || action.equals(InventoryAction.PLACE_ALL)) {
+                event.setCancelled(true);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isWaterBottle(ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+        if (item.getType().equals(Material.POTION)) {
+            PotionMeta meta = (PotionMeta) item.getItemMeta();
+            if (meta == null) {
+                return false;
+            }
+            if (meta.getBasePotionData().getType().equals(PotionType.WATER)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     @EventHandler
@@ -197,7 +242,6 @@ public class ItemListener implements Listener {
             }
         }
     }
-    
     
     @EventHandler
     public void onConsumeItem(final PlayerItemConsumeEvent event) {

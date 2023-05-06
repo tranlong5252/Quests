@@ -18,8 +18,6 @@ import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.player.UserManager;
 import com.herocraftonline.heroes.characters.Hero;
 import io.github.znetworkw.znpcservers.npc.NPC;
-import lombok.Getter;
-import lombok.Setter;
 import me.blackvein.quests.actions.Action;
 import me.blackvein.quests.actions.IAction;
 import me.blackvein.quests.dependencies.IDependencies;
@@ -45,7 +43,11 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Quest implements IQuest {
 
@@ -60,7 +62,7 @@ public class Quest implements IQuest {
     protected Location blockStart;
     protected String regionStart = null;
     protected Action initialAction;
-    @Getter @Setter protected Title title;
+    protected Title title;
     private final BukkitRequirements requirements = new BukkitRequirements();
     private final BukkitPlanner planner = new BukkitPlanner();
     private final BukkitRewards rewards = new BukkitRewards();
@@ -176,7 +178,7 @@ public class Quest implements IQuest {
 
     @Override
     public String getNpcStartName() {
-        return plugin.getDependencies().getNPCName(getNpcStart());
+        return plugin.getDependencies().getNpcName(getNpcStart());
     }
 
     @Override
@@ -364,9 +366,9 @@ public class Quest implements IQuest {
         Bukkit.getScheduler().runTask(plugin, () -> {
             Location targetLocation = null;
             if (stage.getNpcsToInteract() != null && stage.getNpcsToInteract().size() > 0) {
-                targetLocation = plugin.getDependencies().getNPCLocation(stage.getNpcsToInteract().getFirst());
+                targetLocation = plugin.getDependencies().getNpcLocation(stage.getNpcsToInteract().getFirst());
             } else if (stage.getNpcsToKill() != null && stage.getNpcsToKill().size() > 0) {
-                targetLocation = plugin.getDependencies().getNPCLocation(stage.getNpcsToKill().getFirst());
+                targetLocation = plugin.getDependencies().getNpcLocation(stage.getNpcsToKill().getFirst());
             } else if (stage.getLocationsToReach() != null && stage.getLocationsToReach().size() > 0) {
                 targetLocation = stage.getLocationsToReach().getFirst();
             } else if (stage.getItemDeliveryTargets() != null && stage.getItemDeliveryTargets().size() > 0) {
@@ -376,8 +378,8 @@ public class Quest implements IQuest {
                     targetLocation = plugin.getDependencies().getCitizens().getNPCRegistry().getByUniqueId(uuid)
                             .getStoredLocation();
                 }
-                if (plugin.getDependencies().getZnpcs() != null
-                        && plugin.getDependencies().getZnpcsUuids().contains(uuid)) {
+                if (plugin.getDependencies().getZnpcsPlus() != null
+                        && plugin.getDependencies().getZnpcsPlusUuids().contains(uuid)) {
                     final Optional<NPC> opt = NPC.all().stream().filter(npc1 -> npc1.getUUID().equals(uuid)).findAny();
                     if (opt.isPresent()) {
                         targetLocation = opt.get().getLocation();
@@ -538,7 +540,7 @@ public class Quest implements IQuest {
         }
         return display;
     }
-
+    
     /**
      * Check that a quester has met all Requirements to accept this quest<p>
      * 
@@ -569,19 +571,22 @@ public class Quest implements IQuest {
         if (quester.getQuestPoints() < requirements.getQuestPoints()) {
             return false;
         }
-        for (final IQuest q : quester.getCompletedQuestsTemp()) {
-            if (!requirements.getNeededQuestIds().isEmpty()
-                    && requirements.getNeededQuestIds().contains(q.getName())) {
-                return false;
-            }
-            if (!requirements.getBlockQuestIds().isEmpty()
-                    && !requirements.getBlockQuestIds().contains(q.getName())) {
-                return false;
-            }
+        final Set<String> completed = quester.getCompletedQuestsTemp().stream().map(IQuest::getId)
+                .collect(Collectors.toSet());
+        if (!requirements.getNeededQuestIds().isEmpty()
+                && !completed.containsAll(requirements.getNeededQuestIds())) {
+            return false;
         }
-        for (final IQuest q : quester.getCurrentQuestsTemp().keySet()) {
-            if (!requirements.getBlockQuestIds().contains(q.getName())) {
-                return false;
+        if (!requirements.getBlockQuestIds().isEmpty()) {
+            for (final String questId : requirements.getBlockQuestIds()) {
+                if (completed.contains(questId)) {
+                    return false;
+                }
+            }
+            for (final IQuest q : quester.getCurrentQuestsTemp().keySet()) {
+                if (!requirements.getBlockQuestIds().contains(q.getId())) {
+                    return false;
+                }
             }
         }
         for (final String s : requirements.getMcmmoSkills()) {
@@ -1100,6 +1105,14 @@ public class Quest implements IQuest {
      */
     public boolean isInRegionStart(final IQuester quester) {
         return isInRegionStart(quester.getPlayer());
+    }
+
+    public Title getTitle() {
+        return title;
+    }
+
+    public void setTitle(Title title) {
+        this.title = title;
     }
 
     @Override
