@@ -763,9 +763,9 @@ public class Quester implements IQuester {
                 return;
             }
         }
-        List<Integer> stages = new ArrayList<>();
+        LinkedList<Integer> stages = new LinkedList<>();
         if (quest.randomStage()) {
-            while (new HashSet<>(stages).size() < quest.randomStageAmount()) {
+            for (int i = 0; i < quest.randomStageAmount(); i++) {
                 stages.add(new Random().nextInt(quest.getStages().size()));
             }
         } else {
@@ -773,7 +773,7 @@ public class Quester implements IQuester {
                 stages.add(i);
             }
         }
-        quest.setQuestTodo(new LinkedList<>(new HashSet<>(stages)));
+        quest.setQuestTodo(stages);
         int stageIndex = quest.getQuestTodo().get(0);
         if (quest.testRequirements(offlinePlayer) || ignoreRequirements) {
             addEmptiesFor(quest, stageIndex);

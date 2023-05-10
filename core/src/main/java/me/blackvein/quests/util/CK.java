@@ -30,6 +30,8 @@ public class CK {
     public static final String Q_REGION = "region";
     public static final String Q_GUIDISPLAY = "guiDisplay";
     public static final String Q_TITLE = "start-title";
+    public static final String Q_RANDOM_STAGE = "random-stage";
+    public static final String Q_RANDOM_STAGE_AMOUNT = "random-stage-amount";
     // Requirements
     public static final String REQ_MONEY = "moneyReq";
     public static final String REQ_QUEST_POINTS = "questPointsReq";
