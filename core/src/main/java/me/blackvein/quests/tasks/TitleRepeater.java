@@ -1,8 +1,5 @@
 package me.blackvein.quests.tasks;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import me.blackvein.quests.Quest;
 import me.blackvein.quests.Quester;
 import me.blackvein.quests.quests.IQuest;
@@ -13,14 +10,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class TitleRepeater extends BukkitRunnable {
-
     private final Player p;
     private final Title title;
     private final IQuest quest;
     private final Quester quester;
+    
+    public TitleRepeater(Player p, Title title, IQuest quest, Quester quester) {
+        this.p = p;
+        this.title = title;
+        this.quest = quest;
+        this.quester = quester;
+    }
 
     @Override
     public void run() {
@@ -30,7 +33,7 @@ public class TitleRepeater extends BukkitRunnable {
         p.sendTitle(colorize(title.getTitle()), colorize(title.getSubtitle()), 0, 10 * 20, 0);
     }
 
-    public static BukkitTask startTask(@NonNull Plugin plugin, @NonNull Player p, @NonNull IQuest quest, Quester quester) {
+    public static BukkitTask startTask(@NotNull Plugin plugin, @NotNull Player p, @NotNull IQuest quest, Quester quester) {
         Title title = quest.getTitle();
         TitleRepeater task = new TitleRepeater(p, title, quest, quester);
         if (quest.getTitle().getDuration() == -1)

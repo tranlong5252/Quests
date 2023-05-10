@@ -1,14 +1,15 @@
 package me.blackvein.quests.util;
-
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder
 public class Title {
-
     private final String title, subtitle;
     private final int fadeIn, fadeOut, duration;
+
+    public Title(String title, String subtitle, int fadeIn, int fadeOut, int duration) {
+        this.title = title;
+        this.subtitle = subtitle;
+        this.fadeIn = fadeIn;
+        this.fadeOut = fadeOut;
+        this.duration = duration;
+    }
 
     public String toPlainText() {
         return title + "<n>" + subtitle + ";" + duration + ";" + fadeIn + ";" + fadeOut;
@@ -44,6 +45,64 @@ public class Title {
         }
 
         return builder.build();
+    }
+
+    public static TitleBuilder builder() {
+        return new TitleBuilder();
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSubtitle() {
+        return subtitle;
+    }
+
+    public int getFadeIn() {
+        return fadeIn;
+    }
+
+    public int getFadeOut() {
+        return fadeOut;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public static class TitleBuilder {
+        private String title, subtitle;
+        private int fadeIn, fadeOut, duration;
+
+        public TitleBuilder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public TitleBuilder subtitle(String subtitle) {
+            this.subtitle = subtitle;
+            return this;
+        }
+
+        public TitleBuilder fadeIn(int fadeIn) {
+            this.fadeIn = fadeIn;
+            return this;
+        }
+
+        public TitleBuilder fadeOut(int fadeOut) {
+            this.fadeOut = fadeOut;
+            return this;
+        }
+
+        public TitleBuilder duration(int duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public Title build() {
+            return new Title(title, subtitle, fadeIn, fadeOut, duration);
+        }
     }
 
 }

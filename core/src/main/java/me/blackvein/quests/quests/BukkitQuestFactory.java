@@ -150,6 +150,7 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
             context.setSessionData(CK.Q_NAME, q.getName());
             context.setSessionData(CK.Q_ASK_MESSAGE, q.getDescription());
             context.setSessionData(CK.Q_FINISH_MESSAGE, q.getFinished());
+            if (q.getTitle() != null) context.setSessionData(CK.Q_TITLE, q.getTitle());
             if (plugin.getDependencies().getCitizens() != null) {
                 if (q.getNpcStart() != null) {
                     context.setSessionData(CK.Q_START_NPC, q.getNpcStart().toString());
@@ -616,6 +617,10 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
             section.set("start-title.fade-out", title.getFadeOut());
             section.set("start-title.duration", title.getDuration());
         }
+        section.set("random-stage", context.getSessionData(CK.Q_RANDOM_STAGE) != null
+                ? context.getSessionData(CK.Q_RANDOM_STAGE) : null);
+        section.set("random-stage-amount", context.getSessionData(CK.Q_RANDOM_STAGE_AMOUNT) != null
+                ? context.getSessionData(CK.Q_RANDOM_STAGE_AMOUNT) : null);
         saveRequirements(context, section);
         saveStages(context, section);
         saveRewards(context, section);
