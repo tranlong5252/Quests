@@ -123,6 +123,7 @@ public class PlayerListener implements Listener {
         if (event.getView().getTitle().contains(Lang.get(player, "quests"))) {
             final ItemStack clicked = event.getCurrentItem();
             if (ItemUtil.isItem(clicked)) {
+                event.setCancelled(true);
                 for (final IQuest quest : plugin.getLoadedQuests()) {
                     final Quest bukkitQuest = (Quest)quest;
                     if (quest.getGUIDisplay() != null) {
@@ -134,12 +135,12 @@ public class PlayerListener implements Listener {
                                     e.printStackTrace();
                                 }
                             }
-                            event.getWhoClicked().closeInventory();
-                            break;
+                            plugin.getServer().getScheduler().runTaskLater(plugin, () ->
+                                    event.getWhoClicked().closeInventory(), 1L);
+                            return;
                         }
                     }
                 }
-                event.setCancelled(true);
             }
         }
     }
@@ -934,13 +935,6 @@ public class PlayerListener implements Listener {
                 }
                 if (currentStage.getDisconnectAction() != null) {
                     currentStage.getDisconnectAction().fire(quester, quest);
-                }
-            }
-            for (final Integer timerId : quester.getTimers().keySet()) {
-                plugin.getServer().getScheduler().cancelTask(timerId);
-                if (quester.getTimers().containsKey(timerId)) {
-                    quester.getTimers().get(timerId).failQuest(quester);
-                    quester.removeTimer(timerId);
                 }
             }
             if (!plugin.getSettings().canGenFilesOnJoin()) {

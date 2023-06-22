@@ -29,6 +29,7 @@ import org.bukkit.potion.Potion;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 public class ItemUtil {
@@ -127,10 +128,13 @@ public class ItemUtil {
             if (one.getType().equals(Material.WRITTEN_BOOK)) {
                 final BookMeta bMeta1 = (BookMeta) one.getItemMeta();
                 final BookMeta bMeta2 = (BookMeta) two.getItemMeta();
-                if (!bMeta1.getTitle().equals(bMeta2.getTitle())) {
-                    if (!bMeta1.getAuthor().equals(bMeta2.getAuthor())) {
-                        if (!bMeta1.getPages().equals(bMeta2.getPages())) {
-                            return -8;
+                if (bMeta1 != null && bMeta2 != null) {
+                    // Title and author can be null
+                    if (Objects.equals(bMeta1.getTitle(), bMeta2.getTitle())) {
+                        if (Objects.equals(bMeta1.getAuthor(), bMeta2.getAuthor())) {
+                            if (!bMeta1.getPages().equals(bMeta2.getPages())) {
+                                return -8;
+                            }
                         }
                     }
                 }
@@ -591,6 +595,9 @@ public class ItemUtil {
         final String text;
         if (is.getItemMeta() != null && is.getItemMeta().hasDisplayName()) {
             text = "" + ChatColor.DARK_AQUA + ChatColor.ITALIC + is.getItemMeta().getDisplayName();
+        } else if (is.getType().equals(Material.WRITTEN_BOOK)) {
+            final BookMeta bookMeta = (BookMeta) is.getItemMeta();
+            text = "" + ChatColor.DARK_AQUA + ChatColor.LIGHT_PURPLE + bookMeta.getTitle();
         } else {
             text = ChatColor.AQUA + getPrettyItemName(is.getType().name());
         }

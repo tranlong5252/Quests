@@ -185,7 +185,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             Class.forName("me.blackvein.quests.libs.localelib.LocaleManager");
             localeManager = new LocaleManager();
         } catch (final Exception ignored) {
-            getLogger().info("LocaleLib not present. Is this a debug environment?");
+            getLogger().warning("LocaleLib not present! Is this a debug environment?");
         }
         convoListener = new ConvoListener();
         blockListener = new BlockListener(this);
@@ -256,7 +256,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 .thatExcludesNonPlayersWithMessage("Console may not perform this conversation!")
                 .addConversationAbandonedListener(convoListener);
         this.npcConversationFactory = new ConversationFactory(this).withModality(false)
-                .withFirstPrompt(new NpcOfferQuestPrompt()).withTimeout(settings.getAcceptTimeout())
+                .withFirstPrompt(new NpcOfferQuestPrompt(this)).withTimeout(settings.getAcceptTimeout())
                 .withLocalEcho(false).addConversationAbandonedListener(convoListener);
 
         // 11 - Register listeners
@@ -726,6 +726,7 @@ public class Quests extends JavaPlugin implements QuestsAPI {
             }
             final Player player = (Player) context.getForWhom();
             if (input.equalsIgnoreCase("1") || input.equalsIgnoreCase("y")
+                    || input.equalsIgnoreCase(Lang.get("yesWord"))
                     || input.equalsIgnoreCase(Lang.get(player, "yesWord"))) {
                 final IQuester quester = getQuester(player.getUniqueId());
                 final String questIdToTake = quester.getQuestIdToTake();
@@ -739,7 +740,8 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                 }
                 return Prompt.END_OF_CONVERSATION;
             } else if (input.equalsIgnoreCase("2") || input.equalsIgnoreCase("n")
-                    || input.equalsIgnoreCase(Lang.get("noWord"))) {
+                    || input.equalsIgnoreCase(Lang.get("noWord"))
+                    || input.equalsIgnoreCase(Lang.get(player, "noWord"))) {
                 Lang.send(player, ChatColor.YELLOW + Lang.get("cancelled"));
                 return Prompt.END_OF_CONVERSATION;
             } else {
