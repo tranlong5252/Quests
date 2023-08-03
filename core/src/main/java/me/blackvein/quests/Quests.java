@@ -861,6 +861,9 @@ public class Quests extends JavaPlugin implements QuestsAPI {
                     depends.unlinkCitizens();
                 }
             }
+            if (depends.getZnpcsPlus() != null) {
+                depends.unlinkZnpcsPlus();
+            }
             loadModules();
             importQuests();
             if (getSettings().canDisableCommandFeedback()) {
