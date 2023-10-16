@@ -20,6 +20,7 @@ import me.pikamug.quests.util.BukkitConfigUtil;
 import me.pikamug.quests.util.BukkitItemUtil;
 import me.pikamug.quests.util.BukkitMiscUtil;
 import me.pikamug.quests.util.BukkitLang;
+import me.pikamug.quests.util.Title;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.ChatColor;
@@ -254,6 +255,24 @@ public class BukkitQuestYamlStorage implements QuestStorageImpl {
                 quest.setInitialAction(action.get());
             } else {
                 throw new QuestFormatException("'event' failed to load", questId);
+            }
+        }
+        quest.setRandomStage(config.getBoolean("quests." + questId + ".random-stage", false));
+        quest.setRandomStageAmount(config.getInt("quests." + questId + ".random-stage-amount"));
+        if (config.contains("quests." + questId + ".start-title")) {
+            final ConfigurationSection titleSection = config.getConfigurationSection("quests." + questId + ".start-title");
+            if (titleSection != null) {
+                String title = titleSection.getString("title");
+                String subtitle = titleSection.getString("subtitle");
+                int fadeIn = titleSection.getInt("fade-in");
+                int fadeOut = titleSection.getInt("fade-out");
+                int duration = titleSection.getInt("duration");
+
+                Title t = Title.builder().title(title).subtitle(subtitle)
+                        .fadeIn(fadeIn).fadeOut(fadeOut).duration(duration).build();
+                quest.setTitle(t);
+            } else {
+                throw new QuestFormatException("start-title has invalid location format", questId);
             }
         }
         return quest;
@@ -687,6 +706,9 @@ public class BukkitQuestYamlStorage implements QuestStorageImpl {
             pln.setEnd(config.getString("quests." + questKey + ".planner.end"));
         }
         if (config.contains("quests." + questKey + ".planner.repeat")) {
+            if (config.getLong("quests." + questKey + ".planner.repeat", -999) != -999) {
+                pln.setRepeat(config.getLong("quests." + questKey + ".planner.repeat") * 1000L);
+            } else
             if (config.getInt("quests." + questKey + ".planner.repeat", -999) != -999) {
                 pln.setRepeat(config.getInt("quests." + questKey + ".planner.repeat") * 1000L);
             } else {
@@ -702,6 +724,9 @@ public class BukkitQuestYamlStorage implements QuestStorageImpl {
         }
         if (config.contains("quests." + questKey + ".planner.override")) {
             pln.setOverride(config.getBoolean("quests." + questKey + ".planner.override"));
+        }
+        if (config.contains("quests." + questKey + ".planner.reset-on-new-day")) {
+            pln.setResetOnNewDay(config.getBoolean("quests." + questKey + ".planner.reset-on-new-day"));
         }
     }
 

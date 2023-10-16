@@ -83,6 +83,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -92,6 +93,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -109,7 +112,7 @@ public class BukkitQuester implements Quester {
     protected int questPoints = 0;
     private String compassTargetQuestId;
     private long lastNotifiedCondition = 0L;
-    protected ConcurrentHashMap<IQuest, BukkitTask> questTitleTasks = new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<Quest, BukkitTask> questTitleTasks = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<Integer, Quest> timers = new ConcurrentHashMap<>();
     protected ConcurrentHashMap<Quest, Integer> currentQuests = new ConcurrentHashMap<Quest, Integer>() {
 
@@ -127,7 +130,7 @@ public class BukkitQuester implements Quester {
         public Integer remove(final @NotNull Object key) {
             final Integer i = super.remove(key);
             updateJournal();
-            checkTitleRepeater((IQuest) key);
+            checkTitleRepeater((Quest) key);
             return i;
         }
 
@@ -4310,7 +4313,7 @@ public class BukkitQuester implements Quester {
         }
     }
 
-    private void checkTitleRepeater(final IQuest q) {
+    private void checkTitleRepeater(final Quest q) {
         if (currentQuests.containsKey(q)) {
             if (q.getTitle() != null && q.getTitle().getDuration() == -1) {
                 boolean start = false;
@@ -4763,7 +4766,7 @@ public class BukkitQuester implements Quester {
         setTimeZone(TimeZone.getTimeZone(ZoneId.SHORT_IDS.get("VST")));
 
     }};
-    public boolean isResetCooldown(IQuest quest) {
+    public boolean isResetCooldown(Quest quest) {
         long completedTime = getCompletedTimes().get(quest);
         if (quest.getPlanner().getCooldown() > 0) {
             return Integer.parseInt(format.format(new Date())) > Integer.parseInt(format.format(new Date(completedTime)));

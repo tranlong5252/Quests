@@ -17,6 +17,7 @@ import me.pikamug.quests.quests.components.Planner;
 import me.pikamug.quests.quests.components.Requirements;
 import me.pikamug.quests.quests.components.Rewards;
 import me.pikamug.quests.quests.components.Stage;
+import me.pikamug.quests.util.Title;
 
 import java.util.LinkedList;
 import java.util.UUID;
@@ -90,4 +91,18 @@ public interface Quest extends Comparable<Quest> {
     void failQuest(final Quester quester, final boolean ignoreFailAction);
 
     boolean isInRegionStart(final Quester quester);
+
+    Title getTitle();
+
+    boolean randomStage();
+
+    void setRandomStage(final boolean randomStage);
+
+    int randomStageAmount();
+
+    void setRandomStageAmount(final int randomStageAmount);
+
+    LinkedList<Integer> getQuestTodo();
+
+    void setQuestTodo(final LinkedList<Integer> questTodoList);
 }

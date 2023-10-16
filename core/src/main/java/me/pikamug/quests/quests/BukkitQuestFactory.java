@@ -27,6 +27,7 @@ import me.pikamug.quests.util.BukkitConfigUtil;
 import me.pikamug.quests.util.BukkitFakeConversable;
 import me.pikamug.quests.util.BukkitLang;
 import me.pikamug.quests.util.BukkitMiscUtil;
+import me.pikamug.quests.util.Title;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
@@ -154,6 +155,9 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
             context.setSessionData(Key.Q_NAME, bukkitQuest.getName());
             context.setSessionData(Key.Q_ASK_MESSAGE, bukkitQuest.getDescription());
             context.setSessionData(Key.Q_FINISH_MESSAGE, bukkitQuest.getFinished());
+            if (quest.getTitle() != null) context.setSessionData(Key.Q_TITLE, bukkitQuest.getTitle());
+            context.setSessionData(Key.Q_RANDOM_STAGE, bukkitQuest.randomStage());
+            context.setSessionData(Key.Q_RANDOM_STAGE_AMOUNT, bukkitQuest.randomStageAmount());
             if (plugin.getDependencies().getCitizens() != null) {
                 if (bukkitQuest.getNpcStart() != null) {
                     context.setSessionData(Key.Q_START_NPC, bukkitQuest.getNpcStart().toString());
@@ -613,6 +617,18 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
                 ? context.getSessionData(Key.Q_REGION) : null);
         section.set("gui-display", context.getSessionData(Key.Q_GUIDISPLAY) != null
                 ? context.getSessionData(Key.Q_GUIDISPLAY) : null);
+        Title title = context.getSessionData(Key.Q_TITLE) != null ? (Title) context.getSessionData(Key.Q_TITLE) : null;
+        if (title != null) {
+            section.set("start-title.title", title.getTitle());
+            section.set("start-title.subtitle", title.getSubtitle());
+            section.set("start-title.fade-in", title.getFadeIn());
+            section.set("start-title.fade-out", title.getFadeOut());
+            section.set("start-title.duration", title.getDuration());
+        }
+        section.set("random-stage", context.getSessionData(Key.Q_RANDOM_STAGE) != null
+                ? context.getSessionData(Key.Q_RANDOM_STAGE) : null);
+        section.set("random-stage-amount", context.getSessionData(Key.Q_RANDOM_STAGE_AMOUNT) != null
+                ? context.getSessionData(Key.Q_RANDOM_STAGE_AMOUNT) : null);
         saveRequirements(context, section);
         saveStages(context, section);
         saveRewards(context, section);
@@ -904,6 +920,8 @@ public class BukkitQuestFactory implements QuestFactory, ConversationAbandonedLi
         pln.set("cooldown", cooldown != null ? (cooldown / 1000L) : null);
         pln.set("override", context.getSessionData(Key.PLN_OVERRIDE) != null
                 ? context.getSessionData(Key.PLN_OVERRIDE) : null);
+        pln.set("reset-on-new-day", context.getSessionData(Key.PLN_RESET_ON_NEW_DAY) != null
+                ? context.getSessionData(Key.PLN_RESET_ON_NEW_DAY) : null);
         if (pln.getKeys(false).isEmpty()) {
             section.set("planner", null);
         }

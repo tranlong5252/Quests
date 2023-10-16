@@ -48,6 +48,7 @@ import me.pikamug.quests.util.BukkitItemUtil;
 import me.pikamug.quests.util.BukkitMiscUtil;
 import me.pikamug.quests.util.BukkitLang;
 import me.pikamug.quests.util.RomanNumeral;
+import me.pikamug.quests.util.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -1162,10 +1163,12 @@ public class BukkitQuest implements Quest {
 		this.randomStageAmount = randomStageAmount;
 	}
 
+    @Override
     public LinkedList<Integer> getQuestTodo() {
         return questTodo;
     }
 
+    @Override
     public void setQuestTodo(LinkedList<Integer> questTodo) {
         this.questTodo = questTodo;
     }

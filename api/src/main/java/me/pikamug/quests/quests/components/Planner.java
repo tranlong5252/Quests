@@ -42,4 +42,8 @@ public interface Planner {
     boolean getOverride();
 
     void setOverride(final boolean override);
+
+    boolean isResetOnNewDay();
+
+    void setResetOnNewDay(final boolean resetOnNewDay);
 }

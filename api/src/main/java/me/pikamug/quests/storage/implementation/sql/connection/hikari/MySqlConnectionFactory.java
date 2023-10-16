@@ -13,9 +13,6 @@ package me.pikamug.quests.storage.implementation.sql.connection.hikari;
 import com.zaxxer.hikari.HikariConfig;
 import me.pikamug.quests.storage.misc.StorageCredentials;
 
-import com.zaxxer.hikari.HikariConfig;
-import me.blackvein.quests.storage.misc.StorageCredentials;
-
 import java.util.Map;
 import java.util.function.Function;
 

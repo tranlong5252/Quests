@@ -1,4 +1,4 @@
-package me.blackvein.quests.util;
+package me.pikamug.quests.util;
 public class Title {
     private final String title, subtitle;
     private final int fadeIn, fadeOut, duration;

@@ -28,9 +28,7 @@ import me.pikamug.quests.dependencies.reflect.worldguard.WorldGuardAPI;
 import me.pikamug.quests.util.Key;
 import me.pikamug.quests.util.BukkitItemUtil;
 import me.pikamug.quests.util.BukkitLang;
-import me.blackvein.quests.util.Title;
-import net.citizensnpcs.api.CitizensAPI;
-import net.milkbowl.vault.chat.Chat;
+import me.pikamug.quests.util.Title;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -140,7 +138,7 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
                 return ChatColor.GRAY + BukkitLang.get("questEditorNPCStart");
             }
         case 5:
-            return ChatColor.YELLOW + Lang.get("questEditorStartTitle");
+            return ChatColor.YELLOW + BukkitLang.get("questEditorStartTitle");
         case 6:
             if (context.getForWhom() instanceof Player) {
                 return ChatColor.YELLOW + BukkitLang.get("questEditorBlockStart");
@@ -209,10 +207,10 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
                 return ChatColor.GRAY + "(" + BukkitLang.get("notInstalled") + ")";
             }
         case 5:
-            if (context.getSessionData(CK.Q_TITLE) == null) {
+            if (context.getSessionData(Key.Q_TITLE) == null) {
                 return ChatColor.GRAY + "(" + BukkitLang.get("noneSet") + ")";
             } else {
-                return ChatColor.GRAY + "(" + ChatColor.AQUA + ((Title) context.getSessionData(CK.Q_TITLE)).toPlainText() + ChatColor.RESET + ChatColor.GRAY + ")";
+                return ChatColor.GRAY + "(" + ChatColor.AQUA + ((Title) context.getSessionData(Key.Q_TITLE)).toPlainText() + ChatColor.RESET + ChatColor.GRAY + ")";
             }
         case 6:
             if (context.getSessionData(Key.Q_START_BLOCK) == null) {
@@ -617,7 +615,7 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
 
         @Override
         public String getQueryText(final ConversationContext context) {
-            return Lang.get("questEditorEnterStartTitle");
+            return BukkitLang.get("questEditorEnterStartTitle");
         }
 
         @Override
@@ -625,9 +623,9 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
             final QuestsEditorPostOpenStringPromptEvent event = new QuestsEditorPostOpenStringPromptEvent(context, this);
             plugin.getServer().getPluginManager().callEvent(event);
 
-            if (context.getSessionData(CK.Q_TITLE) != null) {
+            if (context.getSessionData(Key.Q_TITLE) != null) {
                 return ChatColor.YELLOW + getQueryText(context)
-                        + ChatColor.GRAY + "(" + ChatColor.BLUE + ((Title) context.getSessionData(CK.Q_TITLE)).toPlainText() + ChatColor.GRAY + ")";
+                        + ChatColor.GRAY + "(" + ChatColor.BLUE + ((Title) context.getSessionData(Key.Q_TITLE)).toPlainText() + ChatColor.GRAY + ")";
             }
 
             return ChatColor.YELLOW + getQueryText(context);
@@ -638,15 +636,15 @@ public class QuestMainPrompt extends QuestsEditorNumericPrompt {
             if (input == null) {
                 return null;
             }
-            if (input.equalsIgnoreCase(Lang.get("cmdCancel"))) {
+            if (input.equalsIgnoreCase(BukkitLang.get("cmdCancel"))) {
                 return new QuestMainPrompt(context);
-            } else if (input.equalsIgnoreCase(Lang.get("cmdClear"))) {
-                context.setSessionData(CK.Q_TITLE, null);
+            } else if (input.equalsIgnoreCase(BukkitLang.get("cmdClear"))) {
+                context.setSessionData(Key.Q_TITLE, null);
                 return new QuestMainPrompt(context);
             } else {
                 Title title = Title.fromPlainText(input);
                 if (title != null) {
-                    context.setSessionData(CK.Q_TITLE, title);
+                    context.setSessionData(Key.Q_TITLE, title);
                     return new QuestMainPrompt(context);
                 }
             }
